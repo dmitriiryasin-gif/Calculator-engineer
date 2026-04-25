@@ -1,0 +1,2006 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Инженерный калькулятор объёмов</title>
+<meta name="description" content="Расчёт объёмов скважины, продавки и пачки">
+<meta name="theme-color" content="#0a0e17">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Калькулятор">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0e17;--panel:#0f1623;--panel2:#141c2e;--border:#1e2d4a;--accent:#00d4ff;--accent2:#ff6b2b;--accent3:#00ff9d;--warn:#ffcc00;--text:#c8d8f0;--dim:#7a9ab5;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Exo 2',sans-serif;min-height:100vh;padding:16px;background-image:radial-gradient(ellipse at 10% 20%,rgba(0,60,100,.2) 0%,transparent 50%),radial-gradient(ellipse at 90% 80%,rgba(0,40,80,.15) 0%,transparent 50%);}
+.header{text-align:center;margin-bottom:24px;}
+.header::after{content:'';display:block;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent);margin-top:12px;}
+.header h1{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:clamp(20px,4vw,32px);letter-spacing:3px;text-transform:uppercase;color:#fff;}
+.header h1 span{color:var(--accent);}
+.header p{font-size:11px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;margin-top:4px;}
+.grid-main{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:1200px;margin:0 auto;}
+@media(max-width:768px){.grid-main{grid-template-columns:1fr;} #monitor-card .mon-layout{grid-template-columns:1fr !important;} #monitor-card > div:first-of-type{grid-template-columns:1fr !important;}}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px;position:relative;overflow:hidden;}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.card.blue::before{background:linear-gradient(90deg,transparent,var(--accent),transparent);}
+.card.orange::before{background:linear-gradient(90deg,transparent,var(--accent2),transparent);}
+.card.green::before{background:linear-gradient(90deg,transparent,var(--accent3),transparent);}
+.card.yellow::before{background:linear-gradient(90deg,transparent,var(--warn),transparent);}
+.card.full{grid-column:1/-1;}
+.card-title{font-family:'Rajdhani',sans-serif;font-weight:600;font-size:13px;letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.card-title .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.blue .dot{background:var(--accent);box-shadow:0 0 8px var(--accent);}
+.orange .dot{background:var(--accent2);box-shadow:0 0 8px var(--accent2);}
+.green .dot{background:var(--accent3);box-shadow:0 0 8px var(--accent3);}
+.yellow .dot{background:var(--warn);box-shadow:0 0 8px var(--warn);}
+.field{display:flex;flex-direction:column;gap:4px;}
+label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#9dbdd4;font-weight:600;}
+input[type=number],select{background:var(--panel2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:14px;padding:7px 10px;width:100%;outline:none;transition:border-color .2s;}
+input[type=number]:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(0,212,255,.1);}
+.section-label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#9dbdd4;font-weight:600;margin-bottom:8px;}
+.result-box{background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:10px 12px;text-align:center;}
+.result-box .rval{font-family:'Share Tech Mono',monospace;font-size:20px;font-weight:bold;line-height:1;margin-bottom:3px;}
+.result-box .rlabel{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#9dbdd4;font-weight:600;}
+.result-box.accent .rval{color:var(--accent);text-shadow:0 0 10px rgba(0,212,255,.5);}
+.result-box.orange .rval{color:var(--accent2);text-shadow:0 0 10px rgba(255,107,43,.5);}
+.result-box.green  .rval{color:var(--accent3);text-shadow:0 0 10px rgba(0,255,157,.5);}
+.result-box.yellow .rval{color:var(--warn);   text-shadow:0 0 10px rgba(255,204,0,.5);}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 18px;border-radius:5px;border:none;cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:600;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;transition:all .2s;}
+.btn-primary{background:var(--accent);color:#000;box-shadow:0 0 20px rgba(0,212,255,.3);}
+.btn-primary:hover{filter:brightness(1.2);}
+.btn-green{background:var(--accent3);color:#000;}
+.btn-green:hover{filter:brightness(1.2);}
+.btn-warn{background:var(--warn);color:#000;}
+.btn-warn:hover{filter:brightness(1.2);}
+.btn-ghost{background:transparent;color:var(--dim);border:1px solid var(--border);}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
+.btn:disabled{opacity:.4;cursor:not-allowed;filter:none!important;}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+hr.sep{border:none;border-top:1px solid var(--border);margin:14px 0;}
+.calc-btn-row{display:flex;justify-content:center;margin-top:14px;}
+.vol-sep{opacity:.35;font-size:13px;}
+/* RO */
+.ro-orange{opacity:.65;background:rgba(255,107,43,.07)!important;border-color:rgba(255,107,43,.2)!important;}
+.ro-blue{opacity:.65;background:rgba(0,212,255,.07)!important;border-color:rgba(0,212,255,.2)!important;}
+.ro-dim{opacity:.5;background:var(--panel2)!important;}
+/* Result plank */
+.cas-vol-result{display:flex;align-items:stretch;margin-top:10px;border:1px solid rgba(0,212,255,.35);border-radius:6px;overflow:hidden;}
+.cas-vol-left{flex:1;padding:8px 12px;background:rgba(0,212,255,.07);display:flex;flex-direction:column;justify-content:center;}
+.cas-vol-label{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);line-height:1.5;}
+.cas-vol-right{padding:8px 16px;background:rgba(0,212,255,.18);border-left:1px solid rgba(0,212,255,.35);display:flex;align-items:center;gap:4px;font-family:'Share Tech Mono',monospace;font-size:14px;font-weight:bold;color:#fff;text-shadow:0 0 14px rgba(0,212,255,.8);white-space:nowrap;flex-shrink:0;}
+.cas-vol-unit{font-size:12px;color:var(--accent);}
+/* Tube variants */
+.tube-sec-result .cas-vol-left{background:rgba(0,212,255,.07);}.tube-sec-result .cas-vol-right{background:rgba(0,212,255,.18);border-left-color:rgba(0,212,255,.4);text-shadow:0 0 14px rgba(0,212,255,.8);}.tube-sec-result{border-color:rgba(0,212,255,.35);}.tube-sec-result .cas-vol-label{color:var(--accent);}.tube-sec-result .cas-vol-unit{color:var(--accent);}
+.tube-total-result .cas-vol-left{background:rgba(255,204,0,.07);}.tube-total-result .cas-vol-right{background:rgba(255,204,0,.18);border-left-color:rgba(255,204,0,.4);text-shadow:0 0 14px rgba(255,204,0,.7);font-size:13px;}.tube-total-result{border-color:rgba(255,204,0,.4);}.tube-total-result .cas-vol-label{color:var(--warn);}.tube-total-result .cas-vol-unit{color:var(--warn);}
+/* Ann zones */
+.zs-zone{border-radius:7px;padding:12px 14px;margin-bottom:4px;}
+.zs-casing{background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);}
+.zs-hole{background:rgba(255,107,43,.06);border:1px solid rgba(255,107,43,.2);}
+.zs-pipe{background:rgba(0,255,157,.04);border:1px solid rgba(0,255,157,.15);}
+.zs-zone-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.zs-zone-title{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:12px;letter-spacing:2px;text-transform:uppercase;flex:1;}
+.zs-casing .zs-zone-title{color:var(--accent);}
+.zs-hole .zs-zone-title{color:var(--accent2);}
+.zs-pipe .zs-zone-title{color:var(--accent3);}
+.zs-fields3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;align-items:end;}
+.zs-fields4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;align-items:end;}
+.zs-dim{opacity:.35;pointer-events:none;}
+.zs-static{font-family:'Share Tech Mono',monospace;font-size:14px;color:var(--dim);padding:7px 10px;background:var(--panel2);border:1px solid var(--border);border-radius:4px;}
+.zs-window{display:flex;align-items:center;gap:8px;margin:6px 0;}
+.zs-window-line{flex:1;height:0;border-top:2px dashed rgba(255,204,0,.4);}
+.zs-window-label{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--warn);white-space:nowrap;letter-spacing:.5px;}
+.zs-window-label b{color:#fff;}
+.zs-section{}
+.zs-sec-head{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;}
+.zs-sec-label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#9dbdd4;font-weight:600;white-space:nowrap;}
+/* Pipe buttons */
+.pipe-btn-group{display:flex;gap:4px;}
+.pipe-btn{padding:5px 14px;border-radius:4px;border:1px solid var(--border);background:var(--panel2);color:var(--dim);font-family:'Rajdhani',sans-serif;font-weight:600;font-size:12px;letter-spacing:1px;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.pipe-btn:hover{border-color:var(--accent3);color:var(--accent3);}
+.pipe-btn.active{background:rgba(0,255,157,.12);border-color:var(--accent3);color:var(--accent3);box-shadow:0 0 10px rgba(0,255,157,.2);}
+#a1_btn_casing.active,#a2_btn_casing.active{background:rgba(0,212,255,.12);border-color:var(--accent);color:var(--accent);box-shadow:0 0 10px rgba(0,212,255,.2);}
+/* Ann result variants */
+.zs-result-hole .cas-vol-left{background:rgba(255,107,43,.08);}.zs-result-hole .cas-vol-right{background:rgba(255,107,43,.2);border-left-color:rgba(255,107,43,.4);color:#fff;text-shadow:0 0 14px rgba(255,107,43,.8);}.zs-result-hole{border-color:rgba(255,107,43,.4);}.zs-result-hole .cas-vol-label{color:var(--accent2);}.zs-result-hole .cas-vol-unit{color:var(--accent2);}
+.zs-result-pipe .cas-vol-left{background:rgba(0,255,157,.06);}.zs-result-pipe .cas-vol-right{background:rgba(0,255,157,.15);border-left-color:rgba(0,255,157,.35);color:#fff;text-shadow:0 0 14px rgba(0,255,157,.7);}.zs-result-pipe{border-color:rgba(0,255,157,.3);}.zs-result-pipe .cas-vol-label{color:var(--accent3);}.zs-result-pipe .cas-vol-unit{color:var(--accent3);}
+.zs-result-total .cas-vol-left{background:rgba(255,204,0,.07);}.zs-result-total .cas-vol-right{background:rgba(255,204,0,.18);border-left-color:rgba(255,204,0,.4);color:#fff;text-shadow:0 0 14px rgba(255,204,0,.7);font-size:13px;}.zs-result-total{border-color:rgba(255,204,0,.4);}.zs-result-total .cas-vol-label{color:var(--warn);}.zs-result-total .cas-vol-unit{color:var(--warn);}
+/* Kav */
+.kav-input-wrap{position:relative;display:flex;align-items:center;}.kav-input-wrap input{width:100%;}
+.kav-note{color:rgba(255,107,43,.7)!important;font-size:9px!important;margin-top:1px;}
+/* Diagram */
+.vol-diagram{display:flex;align-items:stretch;height:120px;margin:12px 0;border-radius:6px;overflow:hidden;border:1px solid var(--border);}
+.vol-tube{flex:1;display:flex;flex-direction:column;justify-content:flex-end;position:relative;padding:4px;text-align:center;overflow:hidden;}
+.vol-tube-inner{background:linear-gradient(180deg,rgba(0,212,255,.7),rgba(0,100,180,.9));border-radius:4px 4px 0 0;position:absolute;bottom:0;left:4px;right:4px;transition:height .5s ease;min-height:4px;}
+.vol-annulus-inner{background:linear-gradient(180deg,rgba(255,107,43,.7),rgba(180,50,10,.9));border-radius:4px 4px 0 0;position:absolute;bottom:0;left:4px;right:4px;transition:height .5s ease;min-height:4px;}
+.vol-label{position:relative;z-index:2;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.9);text-shadow:0 1px 4px rgba(0,0,0,.8);padding:4px 0 0;}
+.vol-value{position:absolute;bottom:8px;left:0;right:0;z-index:2;font-family:'Share Tech Mono',monospace;font-size:13px;font-weight:bold;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.9);}
+/* Monitor */
+.stopwatch-time{font-family:'Share Tech Mono',monospace;font-size:clamp(28px,6vw,52px);font-weight:bold;color:#fff;letter-spacing:2px;text-shadow:0 0 30px rgba(0,212,255,.6);line-height:1;}
+.stopwatch-time.running{color:var(--accent3);text-shadow:0 0 30px rgba(0,255,157,.6);}
+.stopwatch-time.overtime{color:var(--accent2);text-shadow:0 0 30px rgba(255,107,43,.8);animation:pw .5s ease-in-out infinite alternate;}
+@keyframes pw{from{opacity:1}to{opacity:.7}}
+.stopwatch-sub{font-size:11px;letter-spacing:2px;color:#9dbdd4;text-transform:uppercase;margin-top:6px;}
+.progress-label{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;}
+.progress-label span:first-child{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#9dbdd4;font-weight:600;}
+.progress-label span:last-child{font-family:'Share Tech Mono',monospace;font-size:13px;}
+.progress-track{height:10px;background:var(--panel2);border-radius:5px;border:1px solid var(--border);overflow:hidden;margin-bottom:10px;position:relative;}
+.progress-fill{height:100%;border-radius:5px;transition:width .3s ease;position:relative;}
+.progress-fill::after{content:'';position:absolute;right:0;top:0;bottom:0;width:4px;background:rgba(255,255,255,.8);border-radius:2px;}
+.fill-time{background:linear-gradient(90deg,#0066aa,var(--accent));}
+.fill-vol{background:linear-gradient(90deg,#006633,var(--accent3));}
+.fill-over{background:linear-gradient(90deg,#aa3300,var(--accent2));animation:pf .5s infinite alternate;}
+@keyframes pf{from{opacity:1}to{opacity:.7}}
+.log-list{max-height:160px;overflow-y:auto;font-family:'Share Tech Mono',monospace;font-size:11px;line-height:1.7;}
+.log-list::-webkit-scrollbar{width:4px;}.log-list::-webkit-scrollbar-track{background:var(--panel2);}.log-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.log-entry{padding:2px 0;border-bottom:1px solid rgba(30,45,74,.5);}
+.log-entry .log-time{color:#8ab0c8;margin-right:8px;}
+.log-entry .log-msg{color:var(--text);}
+.log-entry.warn .log-msg{color:var(--warn);}
+.log-entry.ok .log-msg{color:var(--accent3);}
+.fact-input-row{display:flex;gap:8px;align-items:flex-end;margin-top:10px;}
+.fact-input-row .field{flex:1;}
+.pf-row{display:flex;gap:12px;margin-top:10px;}
+.pf-box{flex:1;background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center;}
+.pf-box .pf-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#9dbdd4;font-weight:600;}
+.pf-box .pf-val{font-family:'Share Tech Mono',monospace;font-size:22px;font-weight:bold;line-height:1.3;}
+.pf-box .pf-unit{font-size:10px;color:#9dbdd4;}
+.pf-box.plan .pf-val{color:var(--accent);}
+.pf-box.fact .pf-val{color:var(--accent3);}
+.pf-box.diff-pos .pf-val{color:var(--accent3);}
+.pf-box.diff-neg .pf-val{color:var(--accent2);}
+.status-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;margin-top:8px;}
+.badge-ready{background:rgba(0,212,255,.15);color:var(--accent);border:1px solid rgba(0,212,255,.3);}
+.badge-running{background:rgba(0,255,157,.15);color:var(--accent3);border:1px solid rgba(0,255,157,.3);}
+.badge-overtime{background:rgba(255,107,43,.2);color:var(--accent2);border:1px solid rgba(255,107,43,.5);}
+.badge-paused{background:rgba(255,204,0,.15);color:var(--warn);border:1px solid rgba(255,204,0,.3);}
+
+  /* ── Направление продавки — кнопки ── */
+  .dir-btn-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .dir-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 10px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--panel2);
+    cursor: pointer;
+    transition: all .18s;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .dir-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity .18s;
+  }
+  .dir-icon {
+    font-size: 18px;
+    line-height: 1;
+    transition: transform .18s;
+  }
+  .dir-label {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--dim);
+    transition: color .18s;
+    white-space: nowrap;
+  }
+  /* Hover */
+  .dir-btn:hover .dir-label { color: var(--text); }
+  .dir-btn:hover .dir-icon  { transform: scale(1.15); }
+
+  /* Per-direction colours */
+  .dir-tube   { border-color: rgba(0,212,255,.2); }
+  .dir-ann    { border-color: rgba(255,107,43,.2); }
+  .dir-total  { border-color: rgba(0,255,157,.2); }
+  .dir-custom { border-color: rgba(255,204,0,.2); }
+
+  .dir-tube.active   { background: rgba(0,212,255,.15); border-color: var(--accent);  box-shadow: 0 0 14px rgba(0,212,255,.3),  inset 0 0 20px rgba(0,212,255,.08); }
+  .dir-ann.active    { background: rgba(255,107,43,.15); border-color: var(--accent2); box-shadow: 0 0 14px rgba(255,107,43,.3), inset 0 0 20px rgba(255,107,43,.08); }
+  .dir-total.active  { background: rgba(0,255,157,.12); border-color: var(--accent3); box-shadow: 0 0 14px rgba(0,255,157,.25), inset 0 0 20px rgba(0,255,157,.06); }
+  .dir-custom.active { background: rgba(255,204,0,.12);  border-color: var(--warn);   box-shadow: 0 0 14px rgba(255,204,0,.25),  inset 0 0 20px rgba(255,204,0,.06); }
+
+  .dir-tube.active   .dir-icon, .dir-tube.active   .dir-label { color: var(--accent); }
+  .dir-ann.active    .dir-icon, .dir-ann.active    .dir-label { color: var(--accent2); }
+  .dir-total.active  .dir-icon, .dir-total.active  .dir-label { color: var(--accent3); }
+  .dir-custom.active .dir-icon, .dir-custom.active .dir-label { color: var(--warn); }
+
+  .dir-tube:hover   .dir-label { color: var(--accent); }
+  .dir-ann:hover    .dir-label { color: var(--accent2); }
+  .dir-total:hover  .dir-label { color: var(--accent3); }
+  .dir-custom:hover .dir-label { color: var(--warn); }
+
+
+  /* ── БЛОК ПАЧКИ ── */
+  .spank{background:var(--panel2);border:1px solid rgba(0,212,255,.25);border-radius:6px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;min-width:0;}
+  .spank-label{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);font-weight:600;}
+  .spank-row{display:flex;align-items:baseline;gap:4px;flex-wrap:nowrap;}
+  .spank-val{font-family:'Share Tech Mono',monospace;font-size:20px;font-weight:bold;color:#fff;white-space:nowrap;}
+  .spank-unit{font-size:11px;color:var(--accent);flex-shrink:0;}
+  .spank-zone{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .spank-len{border-color:rgba(255,204,0,.25);}.spank-len .spank-label{color:var(--warn);}.spank-len .spank-unit{color:var(--warn);}
+  .spank-status{border-color:rgba(255,107,43,.25);}.spank-status .spank-label{color:var(--accent2);}
+  .spank-big{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:15px;letter-spacing:1px;color:var(--accent2);text-transform:uppercase;}
+  .slug-schema-wrap{background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:12px;overflow:hidden;}
+  .slug-schema-title{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);font-weight:600;margin-bottom:10px;}
+  .slug-schema-body{display:flex;gap:8px;align-items:flex-start;}
+  .slug-schema-zones{display:flex;flex-direction:column;width:72px;flex-shrink:0;}
+  .slug-sz-label{font-size:9px;letter-spacing:1px;text-transform:uppercase;font-weight:600;line-height:1.4;display:flex;align-items:flex-start;padding:4px 0;}
+  .slug-sz-sep{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--warn);text-align:center;border-top:1px dashed rgba(255,204,0,.4);border-bottom:1px dashed rgba(255,204,0,.4);padding:3px 0;flex-shrink:0;}
+  .slug-svg{flex:1;height:400px;max-width:130px;display:block;border-radius:4px;}
+  .slug-schema-scale{width:48px;flex-shrink:0;display:flex;flex-direction:column;justify-content:space-between;height:400px;}
+  .slug-scale-tick{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);padding-left:4px;line-height:1;}
+  .slug-debug{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--dim);margin-bottom:8px;padding:6px 10px;background:var(--panel2);border-radius:4px;border:1px solid var(--border);}
+
+
+  /* ── Монитор: таблица план/факт ── */
+  .mon-table {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .mon-head, .mon-row, .mon-progress-row {
+    display: grid;
+    grid-template-columns: 80px repeat(3, 1fr);
+    gap: 0;
+  }
+  .mon-head {
+    background: rgba(255,255,255,.03);
+    border-bottom: 1px solid var(--border);
+    padding: 6px 10px;
+  }
+  .mon-cell-head {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--accent);
+    text-align: right;
+    padding: 0 8px;
+  }
+  .mon-row {
+    padding: 8px 10px;
+    border-bottom: 1px solid rgba(30,45,74,.4);
+    align-items: center;
+  }
+  .mon-row-total {
+    background: rgba(255,204,0,.04);
+    border-top: 1px solid var(--border);
+    border-bottom: none;
+  }
+  .mon-progress-row {
+    padding: 0 10px 6px;
+    align-items: center;
+  }
+  .mon-progress-row > div:last-child {
+    grid-column: 2 / 5;
+  }
+  .mon-cell-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #9dbdd4;
+    font-weight: 700;
+  }
+  .mon-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .mon-cell {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--accent);
+    text-align: right;
+    padding: 0 8px;
+    white-space: nowrap;
+  }
+  .mon-cell.fact { color: var(--accent3); }
+  .mon-cell.pos  { color: var(--accent3); }
+  .mon-cell.neg  { color: var(--accent2); }
+  .mon-unit { font-size: 10px; opacity: .7; font-weight: normal; }
+
+
+  /* Кнопки режима монитора */
+  .mon-mode-btn {
+    padding: 8px 6px;
+    border-radius: 5px;
+    border: 1px solid var(--border);
+    background: var(--panel2);
+    color: var(--dim);
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all .15s;
+    line-height: 1.3;
+  }
+  .mon-mode-btn:hover { border-color: var(--accent3); color: var(--accent3); }
+  .mon-mode-btn.active {
+    background: rgba(0,255,157,.12);
+    border-color: var(--accent3);
+    color: var(--accent3);
+    box-shadow: 0 0 10px rgba(0,255,157,.2);
+  }
+  #mmode_ann.active  { background:rgba(255,107,43,.12); border-color:var(--accent2); color:var(--accent2); box-shadow:0 0 10px rgba(255,107,43,.2); }
+  #mmode_total.active{ background:rgba(255,204,0,.10);  border-color:var(--warn);    color:var(--warn);    box-shadow:0 0 10px rgba(255,204,0,.2); }
+
+
+  /* ── БЫСТРАЯ ПАНЕЛЬ ── */
+  /* ── БЫСТРАЯ ПАНЕЛЬ ── */
+  .qp-grid {
+    max-width: 1200px;
+    margin: 0 auto 14px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity .25s, visibility .25s, transform .25s;
+    transform: translateY(0);
+  }
+  .qp-grid.qp-hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+  /* Режим попапа — поверх контента */
+  .qp-grid.qp-popup {
+    position: fixed;
+    top: 58px;
+    left: 8px;
+    right: 8px;
+    max-width: calc(100vw - 16px);
+    z-index: 500;
+    margin: 0;
+    background: rgba(10,14,23,.97);
+    border: 1px solid rgba(0,212,255,.3);
+    border-radius: 10px;
+    padding: 8px;
+    box-shadow: 0 8px 32px rgba(0,0,0,.6), 0 0 0 1px rgba(0,212,255,.1);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+  }
+  .qp-grid.qp-popup.qp-hidden {
+    transform: translateY(-8px);
+  }
+
+  /* Группа — 3 ячейки в строку */
+  .qp-group {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    grid-column: 1 / -1;
+  }
+
+  .qp-cell {
+    cursor: pointer;
+    transition: filter .15s;
+    border-radius: 7px;
+    padding: 8px 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    overflow: hidden;
+    min-width: 0;
+  }
+  /* Обычные ячейки */
+  .qp-cell:hover { filter: brightness(1.2); }
+  .qp-c-tube { background: rgba(0,212,255,.08);  border: 1px solid rgba(0,212,255,.25); }
+  .qp-c-ann  { background: rgba(255,107,43,.08); border: 1px solid rgba(255,107,43,.25); }
+  .qp-c-cyl  { background: rgba(0,255,157,.06);  border: 1px solid rgba(0,255,157,.2); }
+  /* Итоговые — ярче */
+  .qp-c-tube.qp-c-total { background: rgba(0,212,255,.18); border-color: rgba(0,212,255,.5); box-shadow: 0 0 12px rgba(0,212,255,.15); }
+  .qp-c-ann.qp-c-total  { background: rgba(255,107,43,.18); border-color: rgba(255,107,43,.5); box-shadow: 0 0 12px rgba(255,107,43,.15); }
+  .qp-c-cyl.qp-c-total  { background: rgba(0,255,157,.14); border-color: rgba(0,255,157,.45); box-shadow: 0 0 12px rgba(0,255,157,.12); }
+
+  .qp-c-icon { flex-shrink: 0; }
+  .qp-c-tube .qp-c-icon { color: var(--accent); }
+  .qp-c-ann  .qp-c-icon { color: var(--accent2); }
+  .qp-c-cyl  .qp-c-icon { color: var(--accent3); }
+
+  .qp-c-info { min-width: 0; flex: 1; overflow: hidden; }
+
+  .qp-c-lbl {
+    font-size: 9px;
+    letter-spacing: .8px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .qp-c-tube .qp-c-lbl { color: rgba(0,212,255,.95); font-weight:700; }
+  .qp-c-ann  .qp-c-lbl { color: rgba(255,107,43,.95); font-weight:700; }
+  .qp-c-cyl  .qp-c-lbl { color: rgba(0,255,157,.9); font-weight:700; }
+
+  .qp-c-val {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 14px;
+    font-weight: bold;
+    white-space: nowrap;
+    line-height: 1.2;
+  }
+  .qp-c-tube .qp-c-val { color: #fff; }
+  .qp-c-ann  .qp-c-val { color: #fff; }
+  .qp-c-cyl  .qp-c-val { color: #fff; }
+  .qp-c-tube.qp-c-total .qp-c-val { color: var(--accent);  text-shadow: 0 0 12px rgba(0,212,255,.6); }
+  .qp-c-ann.qp-c-total  .qp-c-val { color: var(--accent2); text-shadow: 0 0 12px rgba(255,107,43,.6); }
+  .qp-c-cyl.qp-c-total  .qp-c-val { color: var(--accent3); text-shadow: 0 0 12px rgba(0,255,157,.5); }
+
+  .qp-c-u { font-size: 9px; opacity: .55; }
+
+
+  /* ── МОДАЛЬНОЕ ОКНО РАСЧЁТА ── */
+  .qp-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.75);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .qp-modal-overlay.open { display: flex; }
+  .qp-modal {
+    background: var(--panel);
+    border-radius: 12px;
+    padding: 20px;
+    max-width: 480px;
+    width: 100%;
+    border: 1px solid var(--border);
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .qp-modal-close {
+    position: absolute;
+    top: 12px; right: 14px;
+    background: none; border: none;
+    color: var(--dim); font-size: 20px;
+    cursor: pointer; line-height: 1;
+  }
+  .qp-modal-close:hover { color: #fff; }
+  .qp-modal-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700; font-size: 16px;
+    letter-spacing: 2px; text-transform: uppercase;
+    margin-bottom: 14px; padding-right: 24px;
+  }
+  .qp-modal-title.c-tube { color: var(--accent); }
+  .qp-modal-title.c-ann  { color: var(--accent2); }
+  .qp-modal-title.c-cyl  { color: var(--accent3); }
+
+  .qp-calc-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255,255,255,.06);
+  }
+  .qp-calc-row:last-child { border-bottom: none; }
+  .qp-calc-label { font-size: 11px; color: var(--dim); flex: 1; }
+  .qp-calc-formula { font-family: 'Share Tech Mono', monospace; font-size: 10px; color: rgba(255,255,255,.4); flex: 2; text-align: center; }
+  .qp-calc-result { font-family: 'Share Tech Mono', monospace; font-size: 14px; font-weight: bold; color: #fff; white-space: nowrap; }
+  .qp-calc-total {
+    margin-top: 12px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .qp-calc-total.c-tube { background: rgba(0,212,255,.12); border: 1px solid rgba(0,212,255,.3); }
+  .qp-calc-total.c-ann  { background: rgba(255,107,43,.12); border: 1px solid rgba(255,107,43,.3); }
+  .qp-calc-total.c-cyl  { background: rgba(0,255,157,.1);  border: 1px solid rgba(0,255,157,.25); }
+  .qp-calc-total-label { font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--dim); }
+  .qp-calc-total-val { font-family: 'Share Tech Mono', monospace; font-size: 20px; font-weight: bold; }
+  .qp-calc-total-val.c-tube { color: var(--accent); text-shadow: 0 0 12px rgba(0,212,255,.6); }
+  .qp-calc-total-val.c-ann  { color: var(--accent2); text-shadow: 0 0 12px rgba(255,107,43,.6); }
+  .qp-calc-total-val.c-cyl  { color: var(--accent3); text-shadow: 0 0 12px rgba(0,255,157,.5); }
+  .qp-section-head {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700; font-size: 10px;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--dim); margin: 10px 0 4px;
+  }
+
+
+  /* Ячейка расхода */
+  .rate-highlight {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 10px;
+    background: rgba(0,255,157,.09);
+    border: 1px solid rgba(0,255,157,.4);
+    border-left: 3px solid var(--accent3);
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+  }
+  .rate-highlight-label {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--accent3);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .rate-highlight-input {
+    display: flex;
+    align-items: stretch;
+  }
+  .rate-input {
+    background: rgba(0,0,0,.3) !important;
+    border: 1px solid rgba(0,255,157,.35) !important;
+    border-right: none !important;
+    border-radius: 4px 0 0 4px !important;
+    color: #fff !important;
+    font-family: 'Share Tech Mono', monospace !important;
+    font-size: 15px !important;
+    font-weight: bold !important;
+    text-align: right;
+    padding: 4px 8px !important;
+    width: 65px;
+  }
+  .rate-input:focus {
+    border-color: var(--accent3) !important;
+    outline: none;
+  }
+  .rate-unit {
+    background: rgba(0,255,157,.18);
+    border: 1px solid rgba(0,255,157,.35);
+    border-left: none;
+    border-radius: 0 4px 4px 0;
+    padding: 0 8px;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    color: var(--accent3);
+    letter-spacing: 1px;
+  }
+
+
+  /* ── РАСЧЁТ ПАЧКИ ── */
+  .slug-res-card {
+    border-radius: 8px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    position: relative;
+    overflow: hidden;
+  }
+  .slug-rc-head   { background: rgba(0,212,255,.14); border: 1px solid rgba(0,212,255,.45); box-shadow: 0 0 16px rgba(0,212,255,.12); }
+  .slug-rc-tail   { background: rgba(0,255,157,.1);  border: 1px solid rgba(0,255,157,.4);  box-shadow: 0 0 16px rgba(0,255,157,.1); }
+  .slug-rc-len    { background: rgba(255,204,0,.1);  border: 1px solid rgba(255,204,0,.4);  box-shadow: 0 0 16px rgba(255,204,0,.1); }
+  .slug-rc-status { background: rgba(255,107,43,.1); border: 1px solid rgba(255,107,43,.4); box-shadow: 0 0 16px rgba(255,107,43,.1); }
+
+  .slug-rc-label {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700; font-size: 10px;
+    letter-spacing: 1.5px; text-transform: uppercase;
+  }
+  .slug-rc-head   .slug-rc-label { color: var(--accent); }
+  .slug-rc-tail   .slug-rc-label { color: var(--accent3); }
+  .slug-rc-len    .slug-rc-label { color: var(--warn); }
+  .slug-rc-status .slug-rc-label { color: var(--accent2); }
+
+  .slug-rc-val {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 22px; font-weight: bold; color: #fff;
+    line-height: 1.1;
+  }
+  .slug-rc-head   .slug-rc-val { text-shadow: 0 0 14px rgba(0,212,255,.7); }
+  .slug-rc-tail   .slug-rc-val { text-shadow: 0 0 14px rgba(0,255,157,.6); }
+  .slug-rc-len    .slug-rc-val { text-shadow: 0 0 14px rgba(255,204,0,.6); }
+
+  .slug-rc-unit { font-size: 12px; opacity: .6; }
+
+  .slug-rc-zone {
+    font-size: 10px; letter-spacing: .5px;
+    opacity: .75; margin-top: 2px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .slug-rc-head   .slug-rc-zone { color: var(--accent); }
+  .slug-rc-tail   .slug-rc-zone { color: var(--accent3); }
+
+  .slug-rc-status-val {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 800;
+    font-size: clamp(11px, 2.5vw, 16px);
+    letter-spacing: 1px; text-transform: uppercase;
+    color: var(--accent2);
+    text-shadow: 0 0 12px rgba(255,107,43,.6);
+    margin-top: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+
+  /* ── Эффект стекла при прокрутке ── */
+
+
+  /* Заголовок — sticky с glassmorphism */
+  .header {
+    margin-bottom: 24px;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity .25s, visibility .25s;
+  }
+  .header.scrolled {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+
+
+
+  .qp-c-time {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--warn);
+    opacity: .85;
+    margin-top: 1px;
+    white-space: nowrap;
+  }
+
+
+  /* Кнопка быстрой панели */
+  .qp-toggle-btn {
+    position: fixed !important;
+    top: 10px;
+    right: 10px;
+    z-index: 9999;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(10,14,23,.92);
+    border: 1.5px solid rgba(0,212,255,.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 16px rgba(0,212,255,.25);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    transition: border-color .2s, box-shadow .2s;
+    padding: 0;
+  }
+  .qp-toggle-btn.visible { display: flex !important; }
+  .qp-toggle-btn.active {
+    border-color: rgba(0,255,157,.8);
+    box-shadow: 0 2px 20px rgba(0,255,157,.4);
+  }
+
+</style>
+
+<script>
+// ── Inline PWA: Manifest + Service Worker ────────────────────
+
+// 1. Manifest
+(function() {
+  const iconUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAIAAADdvvtQAAADo0lEQVR42u3dQXIUMRAEwD5z4Mr//8R/4AMOezSSVurujKijDzulpIS9C45fv/+IvE6oQAASgASgmgX9/acEgL6WsTYA4YIUQKfRdMMU3JAEUAI3VSUFNyR1BHThsfWUFH3oeJ3dAeU9jMKMoiQdDwLQm8arrilAeytu8l0kQOgUfOTIWGXzt18AQqdOFZGlMh84ubOTUBNGiQHRk72luLYXblLUFbrAKBkgeioVGPQwlAYQOvX6DHoYuh2Qa6twvWF4TNG9gOgpbyjoYehGQPQ0MfRpQA74oKE0gOjpYyjoYegiQPR0MxT0MHQFIHp6GtoLyOHdbOgiQPS0NRQuLxfZSUD0NDcULi+GjgGih6FweQE0c3Bhfhg6AIgeht4DoochgOQQIHoYAkgOAaKHocWAHEBJQ1sAmR8jtBiQ6o1QmB+ZOd8wPzJzxGF+ZOaUw/zIzEGH+ZGZswZIPg5I0W6xp4DMD0Dfn3iYH5k5dIBkGyD3F0A/nnuYH5k5eoBkDyD3F0BPTj/Mj8wAAEg2AHJ/yUMDYX5kZoQAEoDkKkD+AiTPJYT5kZkRAkgAEoAEIAGIHhk0BJAAJAAJQAIQQAKQACQACUAACUACkAAkLQD5MKuMfrDVAokrTAASgAQggAQgAUgAEoAAEoAEIAFIABKAHgBiSIYwACQACUACkADkg60yKMH/Ey3v5wcgAUhSAGKIngFARkj8wjm5DBBD7q8BQEYIIL/2Wy4DxJD7awCQEQLox0MHSD4LiCH31wAgIwTQD1+/nKT0mR+AZD8gt5j7az0ghszPACAjZH7WA2LI/AwAMkLmZz0ghprPzxggI2R+1gNiqPP8DANiiB6A5CgghugBSI4CYoieWUAM0bMFEENJ9RwAZITMzywghprr2QWIoQ6X1xpADHXWswaQi6zn5bUSEEM99WwHxFDhy2sxIIYa6lkMiKFuetYDYqiVni2AGOqjZxcghproOQCIoVN6kgFiqIOevYAYKq9nOyCGauv5BKDvnw2j7PVG+T8ihqcIIIZK9hmt9ta1lR4QQ8UKDBXQkw8QRmXqiptLwej+lkI79OQGhFHqTiJRX30YJaoidOfxSwF6WGIxSXkfOXTqMWsCGu03l6QyzxX16r658TIPkgzQu/Yv+lYl7SsvBej1YZx5lzHJ62wHaPJ4Nv4LqfteEkCfOLbjyd1/wx+lcANQYknV2m7+tgA3AN2LqUWxPmeDC0B7nSkBIAFIAJJ6+Q+/Oe4iYh/lYAAAAABJRU5ErkJggg==';
+  const manifest = {
+    "name": "Инженерный калькулятор объёмов",
+    "short_name": "Калькулятор",
+    "description": "Расчёт объёмов скважины, продавки и пачки",
+    "start_url": "./",
+    "display": "standalone",
+    "background_color": "#0a0e17",
+    "theme_color": "#0a0e17",
+    "orientation": "portrait-primary",
+    "lang": "ru",
+    "icons": [
+      {"src": iconUrl, "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+      {"src": iconUrl, "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+    ]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], {type: 'application/manifest+json'});
+  const link = document.createElement('link');
+  link.rel = 'manifest';
+  link.href = URL.createObjectURL(blob);
+  document.head.appendChild(link);
+})();
+
+// 2. Inline Service Worker via Blob
+(function() {
+  if (!('serviceWorker' in navigator)) return;
+
+  const swCode = `
+const CACHE = 'well-calc-v2';
+self.addEventListener('install', e => {
+  e.waitUntil(
+    caches.open(CACHE).then(c => c.addAll([
+      self.location.href,
+      'https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;800&display=swap'
+    ]).catch(()=>{}))
+  );
+  self.skipWaiting();
+});
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))
+    )
+  );
+  self.clients.claim();
+});
+self.addEventListener('fetch', e => {
+  e.respondWith(
+    caches.match(e.request).then(cached => {
+      if (cached) return cached;
+      return fetch(e.request).then(res => {
+        if (res && res.status === 200) {
+          const clone = res.clone();
+          caches.open(CACHE).then(c => c.put(e.request, clone));
+        }
+        return res;
+      }).catch(() => caches.match(self.location.href));
+    })
+  );
+});
+`;
+
+  const blob = new Blob([swCode], {type: 'application/javascript'});
+  const url  = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(url, {scope: './'})
+    .then(() => console.log('SW ready'))
+    .catch(e => console.log('SW err:', e));
+})();
+</script>
+</head>
+<body>
+<script>
+// Глобальная функция — должна быть доступна до загрузки остальных скриптов
+function toggleQpPanel() {
+  const qpGrid = document.querySelector('.qp-grid');
+  const btn    = document.getElementById('qp_toggle_btn');
+  if (!qpGrid || !btn) return;
+
+  const isScrolled = window.scrollY > 80;
+  const opening    = qpGrid.classList.contains('qp-hidden');
+
+  if (isScrolled) {
+    // Всплывающий режим
+    qpGrid.classList.add('qp-popup');
+    qpGrid.classList.toggle('qp-hidden', !opening);
+  } else {
+    qpGrid.classList.remove('qp-popup');
+    qpGrid.classList.toggle('qp-hidden', !opening);
+  }
+  btn.classList.toggle('active', opening);
+}
+
+// Закрыть попап при клике вне его
+document.addEventListener('click', function(e) {
+  const qpGrid = document.querySelector('.qp-grid');
+  const btn    = document.getElementById('qp_toggle_btn');
+  if (!qpGrid || !btn) return;
+  if (qpGrid.classList.contains('qp-popup') &&
+      !qpGrid.contains(e.target) &&
+      !btn.contains(e.target)) {
+    qpGrid.classList.add('qp-hidden');
+    qpGrid.classList.remove('qp-popup');
+    btn.classList.remove('active');
+  }
+});
+</script>
+<button class="qp-toggle-btn" id="qp_toggle_btn" onclick="toggleQpPanel()" title="Быстрая панель">
+  <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="2" y="2" width="7" height="7" rx="1.2" fill="#00d4ff"/>
+    <rect x="11" y="2" width="7" height="7" rx="1.2" fill="#ff6b2b"/>
+    <rect x="2" y="11" width="7" height="7" rx="1.2" fill="#00ff9d"/>
+    <rect x="11" y="11" width="7" height="7" rx="1.2" fill="#ffcc00"/>
+  </svg>
+</button>
+
+<div class="header">
+  <div style="display:flex;align-items:center;justify-content:center;gap:14px;">
+    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
+      <!-- Мерный цилиндр -->
+      <path d="M8 6 L8 34 Q8 36 10 36 L30 36 Q32 36 32 34 L32 6" stroke="#00d4ff" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <ellipse cx="20" cy="6" rx="12" ry="3" stroke="#00d4ff" stroke-width="1.8" fill="rgba(0,212,255,0.1)"/>
+      <path d="M8.5 22 L8.5 34 Q8.5 35.5 10 35.5 L30 35.5 Q31.5 35.5 31.5 34 L31.5 22 Q20 25 8.5 22Z" fill="rgba(0,212,255,0.25)"/>
+      <path d="M9 22 Q14 19.5 20 21.5 Q26 23.5 31 21" stroke="#00d4ff" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+      <line x1="8" y1="14" x2="14" y2="14" stroke="#00ff9d" stroke-width="1.2" opacity=".8"/>
+      <line x1="8" y1="18" x2="11" y2="18" stroke="#00ff9d" stroke-width="1" opacity=".5"/>
+      <line x1="8" y1="22" x2="14" y2="22" stroke="#00ff9d" stroke-width="1.2" opacity=".8"/>
+      <line x1="8" y1="26" x2="11" y2="26" stroke="#00ff9d" stroke-width="1" opacity=".5"/>
+      <line x1="8" y1="30" x2="14" y2="30" stroke="#00ff9d" stroke-width="1.2" opacity=".8"/>
+      <text x="17" y="31" font-size="8" font-family="monospace" font-weight="bold" fill="#ffcc00" opacity=".9">м³</text>
+    </svg>
+    <h1 style="margin:0;">ИНЖЕНЕРНЫЙ <span>КАЛЬКУЛЯТОР</span> ОБЪЁМОВ</h1>
+  </div>
+</div>
+
+<!-- БЫСТРАЯ ПАНЕЛЬ -->
+<div class="qp-grid">
+  <div class="qp-group">
+
+  <!-- Трубное С1 -->
+  <div class="qp-cell qp-c-tube" onclick="openQpModal('tube1')">
+    <div class="qp-c-icon">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="8" y="1" width="8" height="22" rx="1" stroke="currentColor" stroke-width="2"/></svg>
+    </div>
+    <div class="qp-c-info">
+      <div class="qp-c-lbl">Труба С-1</div>
+      <div class="qp-c-val"><span id="qp_t1">—</span><span class="qp-c-u"> м³</span></div>
+      <div class="qp-c-time"><span id="qp_t1_min">—</span><span class="qp-c-u"> мин</span></div>
+    </div>
+  </div>
+
+  <!-- Трубное С2 -->
+  <div class="qp-cell qp-c-tube" onclick="openQpModal('tube2')">
+    <div class="qp-c-icon">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="8" y="1" width="8" height="22" rx="1" stroke="currentColor" stroke-width="2" stroke-dasharray="3 1"/></svg>
+    </div>
+    <div class="qp-c-info">
+      <div class="qp-c-lbl">Труба С-2</div>
+      <div class="qp-c-val"><span id="qp_t2">—</span><span class="qp-c-u"> м³</span></div>
+      <div class="qp-c-time"><span id="qp_t2_min">—</span><span class="qp-c-u"> мин</span></div>
+    </div>
+  </div>
+
+  <!-- Трубное итого -->
+  <div class="qp-cell qp-c-tube qp-c-total" onclick="openQpModal('tube_total')">
+    <div class="qp-c-icon">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="8" y="1" width="8" height="22" rx="1" stroke="currentColor" stroke-width="2" fill="rgba(0,212,255,.3)"/></svg>
+    </div>
+    <div class="qp-c-info">
+      <div class="qp-c-lbl">Итого</div>
+      <div class="qp-c-val"><span id="qp_tube_total">—</span><span class="qp-c-u"> м³</span></div>
+      <div class="qp-c-time"><span id="qp_tube_total_min">—</span><span class="qp-c-u"> мин</span></div>
+    </div>
+  </div>
+
+  </div><!-- /qp-group tube -->
+  <div class="qp-group">
+
+  <!-- Затруб ОК -->
+  <div class="qp-cell qp-c-ann" onclick="openQpModal('ann_ok')">
+    <div class="qp-c-icon">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="2" y="1" width="20" height="22" rx="2" stroke="currentColor" stroke-width="2"/><rect x="8" y="1" width="8" height="22" rx="1" stroke="currentColor" stroke-width="1.2" fill="rgba(255,107,43,.2)"/></svg>
+    </div>
+    <div class="qp-c-info">
+      <div class="qp-c-lbl">Затруб ОК</div>
+      <div class="qp-c-val"><span id="qp_ann_ok">—</span><span class="qp-c-u"> м³</span></div>
+      <div class="qp-c-time"><span id="qp_ann_ok_min">—</span><span class="qp-c-u"> мин</span></div>
+    </div>
+  </div>
+
+  <!-- Затруб ствол -->
+  <div class="qp-cell qp-c-ann" onclick="openQpModal('ann_hole')">
+    <div class="qp-c-icon">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M3 3 Q3 1 12 1 Q21 1 21 3 L21 21 Q21 23 12 23 Q3 23 3 21 Z" stroke="currentColor" stroke-width="1.8" fill="none"/><rect x="8" y="1" width="8" height="22" rx="1" stroke="currentColor" stroke-width="1.2" fill="rgba(255,107,43,.2)"/></svg>
+    </div>
+    <div class="qp-c-info">
+      <div class="qp-c-lbl">Затруб ОС</div>
+      <div class="qp-c-val"><span id="qp_ann_hole">—</span><span class="qp-c-u"> м³</span></div>
+      <div class="qp-c-time"><span id="qp_ann_hole_min">—</span><span class="qp-c-u"> мин</span></div>
+    </div>
+  </div>
+
+  <!-- Затруб итого -->
+  <div class="qp-cell qp-c-ann qp-c-total" onclick="openQpModal('ann_total')">
+    <div class="qp-c-icon">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="2" y="1" width="20" height="22" rx="2" stroke="currentColor" stroke-width="2" fill="rgba(255,107,43,.2)"/><rect x="8" y="1" width="8" height="22" rx="1" stroke="currentColor" stroke-width="1.2"/></svg>
+    </div>
+    <div class="qp-c-info">
+      <div class="qp-c-lbl">Итого</div>
+      <div class="qp-c-val"><span id="qp_ann_total">—</span><span class="qp-c-u"> м³</span></div>
+      <div class="qp-c-time"><span id="qp_ann_total_min">—</span><span class="qp-c-u"> мин</span></div>
+    </div>
+  </div>
+
+  </div><!-- /qp-group ann -->
+  <div class="qp-group">
+
+  <!-- ОК цилиндр -->
+  <div class="qp-cell qp-c-cyl" onclick="openQpModal('cyl_ok')">
+    <div class="qp-c-icon">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="2" y="1" width="20" height="22" rx="2" stroke="currentColor" stroke-width="2" stroke-dasharray="3 1" fill="rgba(0,255,157,.1)"/></svg>
+    </div>
+    <div class="qp-c-info">
+      <div class="qp-c-lbl">ОК</div>
+      <div class="qp-c-val"><span id="qp_cas_vol">—</span><span class="qp-c-u"> м³</span></div>
+      <div class="qp-c-time"><span id="qp_cas_vol_min">—</span><span class="qp-c-u"> мин</span></div>
+    </div>
+  </div>
+
+  <!-- Ствол цилиндр -->
+  <div class="qp-cell qp-c-cyl" onclick="openQpModal('cyl_hole')">
+    <div class="qp-c-icon">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="2" y="1" width="20" height="22" rx="2" stroke="currentColor" stroke-width="2" fill="rgba(0,255,157,.15)"/></svg>
+    </div>
+    <div class="qp-c-info">
+      <div class="qp-c-lbl">ОС</div>
+      <div class="qp-c-val"><span id="qp_hole_vol">—</span><span class="qp-c-u"> м³</span></div>
+      <div class="qp-c-time"><span id="qp_hole_vol_min">—</span><span class="qp-c-u"> мин</span></div>
+    </div>
+  </div>
+
+  <!-- Без колонны итого -->
+  <div class="qp-cell qp-c-cyl qp-c-total" onclick="openQpModal('cyl_total')">
+    <div class="qp-c-icon">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="2" y="1" width="20" height="22" rx="2" stroke="currentColor" stroke-width="2" fill="rgba(0,255,157,.25)"/><line x1="7" y1="8" x2="17" y2="8" stroke="currentColor" stroke-width="1.5" opacity=".5"/><line x1="7" y1="16" x2="17" y2="16" stroke="currentColor" stroke-width="1.5" opacity=".5"/></svg>
+    </div>
+    <div class="qp-c-info">
+      <div class="qp-c-lbl">Итого</div>
+      <div class="qp-c-val"><span id="qp_cyl_total">—</span><span class="qp-c-u"> м³</span></div>
+      <div class="qp-c-time"><span id="qp_cyl_total_min">—</span><span class="qp-c-u"> мин</span></div>
+    </div>
+  </div>
+
+  </div><!-- /qp-group cyl -->
+
+  <!-- hidden compat -->
+  <input type="hidden" id="qp_cas_id"><input type="hidden" id="qp_cas_bot">
+  <input type="hidden" id="qp_cas_od"><input type="hidden" id="qp_cas_id2">
+  <input type="hidden" id="qp_hole_d"><input type="hidden" id="qp_hole_kav">
+  <input type="hidden" id="qp_hole_d2"><input type="hidden" id="qp_hole_len">
+
+</div><!-- qp-grid -->
+
+<div class="grid-main">
+
+<!-- ① ТРУБНОЕ ПРОСТРАНСТВО -->
+<div class="card blue">
+  <div class="card-title"><div class="dot"></div>Трубное пространство</div>
+
+  <div class="section-label">Секция 1</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;align-items:end;margin-bottom:4px;">
+    <div class="field"><label>Нар. Ø (мм)</label><input type="number" id="t1_od" value="73" step="0.1" oninput="calc()"></div>
+    <div class="field"><label>Стенка (мм)</label><input type="number" id="t1_wt" value="5.5" step="0.1" oninput="calc()"></div>
+    <div class="field"><label>Глубина (м)</label><input type="number" id="t1_len" value="2000" step="1" oninput="calc()"></div>
+  </div>
+  <div class="cas-vol-result tube-sec-result">
+    <div class="cas-vol-left"><div class="cas-vol-label">Объём трубного</div><div class="cas-vol-label">секция 1</div></div>
+    <div class="cas-vol-right"><span id="t1_vol">—</span><span class="cas-vol-unit"> л</span></div>
+  </div>
+
+  <div class="section-label" style="margin-top:12px;">Секция 2 (опц.)</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;align-items:end;margin-bottom:4px;">
+    <div class="field"><label>Нар. Ø (мм)</label><input type="number" id="t2_od" value="0" step="0.1" oninput="calc()"></div>
+    <div class="field"><label>Стенка (мм)</label><input type="number" id="t2_wt" value="0" step="0.1" oninput="calc()"></div>
+    <div class="field"><label>Глубина (м)</label><input type="number" id="t2_len" value="0" step="1" oninput="calc()"></div>
+  </div>
+  <div class="cas-vol-result tube-sec-result">
+    <div class="cas-vol-left"><div class="cas-vol-label">Объём трубного</div><div class="cas-vol-label">секция 2</div></div>
+    <div class="cas-vol-right"><span id="t2_vol">—</span><span class="cas-vol-unit"> л</span></div>
+  </div>
+
+  <input type="hidden" id="t3_od" value="0">
+  <input type="hidden" id="t3_wt" value="0">
+  <input type="hidden" id="t3_len" value="0">
+  <input type="hidden" id="t3_vol">
+
+  <div class="cas-vol-result tube-total-result" style="margin-top:14px;">
+    <div class="cas-vol-left"><div class="cas-vol-label">Трубное</div><div class="cas-vol-label">пространство итого</div></div>
+    <div class="cas-vol-right" style="gap:8px;">
+      <span id="tube_total_l">—</span><span class="cas-vol-unit">л</span>
+      <span class="vol-sep">│</span>
+      <span id="tube_total_m3">—</span><span class="cas-vol-unit">м³</span>
+    </div>
+  </div>
+</div>
+
+<!-- ② ЗАТРУБНОЕ ПРОСТРАНСТВО -->
+<div class="card orange">
+  <div class="card-title"><div class="dot"></div>Затрубное пространство</div>
+
+  <!-- Обсадная -->
+  <div class="zs-zone zs-casing">
+    <div class="zs-zone-head"><div class="zs-zone-title">① Обсадная колонна</div></div>
+    <div class="zs-fields3">
+      <div class="field"><label>Нар. Ø ОК (мм)</label><input type="number" id="cas_od" value="244.5" step="0.1" oninput="calc()"></div>
+      <div class="field"><label>Стенка (мм)</label><input type="number" id="cas_wt" value="10.03" step="0.01" oninput="calc()"></div>
+      <div class="field"><label>Глубина окна (м)</label><input type="number" id="cas_bot" value="1800" step="1" oninput="calc()"></div>
+    </div>
+    <div class="cas-vol-result" style="margin-top:10px;">
+      <div class="cas-vol-left"><div class="cas-vol-label">Объём</div><div class="cas-vol-label">обсадной колонны</div></div>
+      <div class="cas-vol-right"><span id="ann_cas_res">—</span><span class="cas-vol-unit"> л</span></div>
+    </div>
+    <input type="hidden" id="cas_ann_vol">
+  </div>
+
+  <!-- Окно -->
+  <div class="zs-window">
+    <div class="zs-window-line"></div>
+    <div class="zs-window-label">▼ ОКНО · <b id="window_depth_lbl">1800</b> м</div>
+    <div class="zs-window-line"></div>
+  </div>
+
+  <!-- Открытый ствол -->
+  <div class="zs-zone zs-hole">
+    <div class="zs-zone-head"><div class="zs-zone-title">② Открытый ствол</div></div>
+    <div class="zs-fields4">
+      <div class="field"><label>Ø долота (мм)</label><input type="number" id="hole_d" value="215.9" step="0.1" oninput="calc()"></div>
+      <div class="field"><label>К. каверн.</label><div class="kav-input-wrap"><input type="number" id="hole_kav" value="1.15" step="0.01" min="1" max="3" oninput="calc()"></div></div>
+      <div class="field"><label>От окна ▸ (м)</label><input type="number" id="hole_top_lbl" readonly class="ro-dim"></div>
+      <div class="field"><label>Забой (м)</label><input type="number" id="hole_bot" value="2500" step="1" oninput="calc()"></div>
+    </div>
+    <div class="cas-vol-result zs-result-hole" style="margin-top:10px;">
+      <div class="cas-vol-left"><div class="cas-vol-label">Объём открытого ствола</div><div class="cas-vol-label kav-note" id="kav_note">с учётом К.кав = 1.15</div></div>
+      <div class="cas-vol-right"><span id="ann_hole_res">—</span><span class="cas-vol-unit"> л</span></div>
+    </div>
+    <input type="hidden" id="ann_hole_vol">
+  </div>
+
+  <!-- Затрубное пространство секции -->
+  <div class="zs-zone zs-pipe">
+    <div class="zs-zone-head"><div class="zs-zone-title">③ Объём затрубного пространства</div></div>
+
+    <div class="zs-section">
+      <div class="zs-sec-head">
+        <span class="zs-sec-label">Секция 1</span>
+        <div class="pipe-btn-group">
+          <button class="pipe-btn active" id="a1_btn_drill"  onclick="setPipeType(1,'drill')">Бурильная</button>
+          <button class="pipe-btn"        id="a1_btn_casing" onclick="setPipeType(1,'casing')">Обсадная / хвостовик</button>
+        </div>
+        <input type="hidden" id="a1_type" value="drill">
+      </div>
+      <div class="zs-fields4">
+        <div class="field"><label>Нар. Ø (мм)</label><input type="number" id="a1_pipe_od" value="127" step="0.1" oninput="calc()"></div>
+        <div class="field"><label>От (м)</label><input type="number" id="a1_from" value="0" step="1" oninput="calc()"></div>
+        <div class="field"><label>До (м)</label><input type="number" id="a1_len" value="2500" step="1" oninput="calc()"></div>
+      </div>
+      <div class="cas-vol-result zs-result-pipe" style="margin-top:8px;">
+        <div class="cas-vol-left"><div class="cas-vol-label">Объём кольца</div><div class="cas-vol-label">секция 1</div></div>
+        <div class="cas-vol-right"><span id="a1_vol">—</span><span class="cas-vol-unit"> л</span></div>
+      </div>
+    </div>
+
+    <div class="zs-section" style="margin-top:12px;">
+      <div class="zs-sec-head">
+        <span class="zs-sec-label">Секция 2 (опц.)</span>
+        <div class="pipe-btn-group">
+          <button class="pipe-btn active" id="a2_btn_drill"  onclick="setPipeType(2,'drill')">Бурильная</button>
+          <button class="pipe-btn"        id="a2_btn_casing" onclick="setPipeType(2,'casing')">Обсадная / хвостовик</button>
+        </div>
+        <input type="hidden" id="a2_type" value="drill">
+      </div>
+      <div class="zs-fields4">
+        <div class="field"><label>Нар. Ø (мм)</label><input type="number" id="a2_pipe_od" value="0" step="0.1" oninput="calc()"></div>
+        <div class="field"><label>От (м)</label><input type="number" id="a2_from" value="0" step="1" oninput="calc()"></div>
+        <div class="field"><label>До (м)</label><input type="number" id="a2_len" value="0" step="1" oninput="calc()"></div>
+      </div>
+      <div class="cas-vol-result zs-result-pipe" style="margin-top:8px;">
+        <div class="cas-vol-left"><div class="cas-vol-label">Объём кольца</div><div class="cas-vol-label">секция 2</div></div>
+        <div class="cas-vol-right"><span id="a2_vol">—</span><span class="cas-vol-unit"> л</span></div>
+      </div>
+    </div>
+
+    <div class="cas-vol-result zs-result-total" style="margin-top:14px;">
+      <div class="cas-vol-left"><div class="cas-vol-label">Затрубное</div><div class="cas-vol-label">пространство итого</div></div>
+      <div class="cas-vol-right" style="gap:8px;">
+        <span id="ann_total_l">—</span><span class="cas-vol-unit">л</span>
+        <span class="vol-sep">│</span>
+        <span id="ann_total_m3">—</span><span class="cas-vol-unit">м³</span>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ③ ПАРАМЕТРЫ ПРОДАВКИ -->
+<div class="card green" style="background:linear-gradient(160deg,#0c1f14,#071510);border-color:rgba(0,255,157,.25);">
+  <div class="card-title" style="color:var(--accent3);letter-spacing:3px;"><div class="dot"></div>Параметры продавки</div>
+
+  <!-- Направление — кнопки -->
+  <div style="margin-bottom:14px;">
+    <div class="section-label" style="margin-bottom:8px;color:rgba(0,255,157,.7);">Направление продавки</div>
+    <div class="dir-btn-group">
+      <button class="dir-btn dir-tube active" id="dir_btn_tube"    onclick="setDir('tube')">
+        <span class="dir-icon">↓</span><span class="dir-label">Трубное</span>
+      </button>
+      <button class="dir-btn dir-ann"         id="dir_btn_annulus" onclick="setDir('annulus')">
+        <span class="dir-icon">↑</span><span class="dir-label">Затрубное</span>
+      </button>
+      <button class="dir-btn dir-total"       id="dir_btn_total"   onclick="setDir('total')">
+        <span class="dir-icon">⟳</span><span class="dir-label">Трубное + Затрубное</span>
+      </button>
+      <button class="dir-btn dir-custom"      id="dir_btn_custom"  onclick="setDir('custom')">
+        <span class="dir-icon">✎</span><span class="dir-label">Задать объём</span>
+      </button>
+    </div>
+    <input type="hidden" id="direction" value="tube">
+  </div>
+
+  <div id="custom_row" style="display:none;margin-bottom:10px;">
+    <div class="field"><label>Объём продавки (л)</label><input type="number" id="custom_vol" value="5000" oninput="calc()"></div>
+  </div>
+
+  <!-- Расход -->
+  <div style="display:flex;align-items:center;background:rgba(0,255,157,.09);border:1px solid rgba(0,255,157,.4);border-left:3px solid var(--accent3);border-radius:6px;padding:7px 10px;margin-bottom:12px;gap:8px;overflow:hidden;">
+    <span style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--accent3);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">⚡ Расход закачки</span>
+    <input type="number" id="pump_rate_ls" value="8.33" step="0.1" min="0.1" oninput="syncRate('ls')" style="width:60px;flex-shrink:0;background:rgba(0,0,0,.3);border:1px solid rgba(0,255,157,.35);border-right:none;border-radius:4px 0 0 4px;color:#fff;font-family:'Share Tech Mono',monospace;font-size:14px;font-weight:bold;text-align:right;padding:4px 6px;outline:none;">
+    <span style="flex-shrink:0;background:rgba(0,255,157,.18);border:1px solid rgba(0,255,157,.35);border-left:none;border-radius:0 4px 4px 0;padding:4px 8px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:11px;color:var(--accent3);white-space:nowrap;">л/с</span>
+  </div>
+
+  <input type="hidden" id="pump_eff" value="100">
+  <hr class="sep" style="border-color:rgba(0,255,157,.15);">
+
+  <div style="display:flex;flex-direction:column;gap:8px;">
+    <div class="cas-vol-result" style="margin-top:0;border-color:rgba(0,255,157,.5);box-shadow:0 0 16px rgba(0,255,157,.1);">
+      <div class="cas-vol-left" style="background:rgba(0,255,157,.1);">
+        <div class="cas-vol-label" style="color:var(--accent3);font-weight:700;">Объём продавки</div>
+      </div>
+      <div class="cas-vol-right" style="background:rgba(0,255,157,.22);border-left-color:rgba(0,255,157,.5);text-shadow:0 0 16px rgba(0,255,157,.8);gap:10px;padding:10px 20px;">
+        <span style="font-size:20px;font-weight:bold;"><span id="plan_vol">—</span><span class="cas-vol-unit" style="color:var(--accent3);font-size:13px;"> л</span></span>
+        <span style="opacity:.4;font-size:16px;margin:0 2px;">│</span>
+        <span style="font-size:16px;"><span id="plan_m3">—</span><span class="cas-vol-unit" style="color:var(--accent3);font-size:11px;"> м³</span></span>
+      </div>
+    </div>
+    <div class="cas-vol-result" style="margin-top:0;border-color:rgba(255,204,0,.5);box-shadow:0 0 16px rgba(255,204,0,.08);">
+      <div class="cas-vol-left" style="background:rgba(255,204,0,.1);">
+        <div class="cas-vol-label" style="color:var(--warn);font-weight:700;">Расчётное время продавки</div>
+      </div>
+      <div class="cas-vol-right" style="background:rgba(255,204,0,.22);border-left-color:rgba(255,204,0,.5);text-shadow:0 0 16px rgba(255,204,0,.8);gap:12px;padding:10px 20px;">
+        <span style="font-size:20px;font-weight:bold;"><span id="plan_time">—</span><span class="cas-vol-unit" style="color:var(--warn);font-size:13px;"> мин</span></span>
+        <span style="opacity:.3;font-size:14px;">|</span>
+        <span style="font-size:15px;opacity:.85;"><span id="plan_time_h">—</span><span class="cas-vol-unit" style="color:var(--warn);font-size:11px;"> ч</span></span>
+      </div>
+    </div>
+  </div>
+  <div style="display:none;">
+    <div id="diag_tube"></div><div id="diag_ann"></div>
+    <div id="diag_tube_v"></div><div id="diag_ann_v"></div>
+  </div>
+</div>
+
+<div style="display:none;">
+  <span id="sum_tube"></span><span id="sum_ann"></span><span id="sum_total"></span>
+  <span id="sum_plan_vol"></span><span id="sum_plan_m3"></span><span id="sum_time_min"></span>
+  <span id="sum_rate"></span>
+</div>
+
+<!-- ⑤ МОНИТОРИНГ -->
+<div style="display:none;" id="monitor-card">
+  <span id="sw_display"></span><span id="sw_status_label"></span><span id="sw_badge"></span>
+  <span id="btn_start"></span><span id="btn_pause"></span>
+  <span id="pf_plan"></span><span id="pf_fact"></span><span id="pf_diff"></span><div id="pf_diff_box"></div>
+  <span id="pf_t_plan"></span><span id="pf_t_fact"></span><span id="pf_t_diff"></span><div id="pf_t_diff_box"></div>
+  <span id="pf_rate_actual"></span><span id="fact_vol_input"></span>
+  <span id="prog_time_pct"></span><span id="prog_vol_pct"></span>
+  <div id="prog_time_bar"></div><div id="prog_vol_bar"></div>
+  <div id="event_log"></div>
+  <span id="mon_plan_tube"></span><span id="mon_fact_tube"></span><span id="mon_delta_tube"></span><div id="mon_delta_tube_box"></div>
+  <div id="mon_bar_tube"></div>
+  <span id="mon_plan_ann"></span><span id="mon_fact_ann"></span><span id="mon_delta_ann"></span><div id="mon_delta_ann_box"></div>
+  <div id="mon_bar_ann"></div>
+  <span id="mon_plan_total"></span><span id="mon_fact_total"></span><span id="mon_delta_total"></span><div id="mon_delta_total_box"></div>
+  <div id="mon_bar_total"></div>
+  <span id="mon_mode" value="tube"></span>
+  <span id="mmode_tube"></span><span id="mmode_ann"></span><span id="mmode_total"></span>
+</div>
+</div><!-- grid-main -->
+
+<script>
+let state={tube_l:0,ann_l:0,plan_vol_l:0,plan_time_min:0,pump_rate_ls:8.33};
+let sw={running:false,paused:false,startTs:0,elapsed:0,interval:null};
+let factVol=0;
+
+function v(id){return parseFloat(document.getElementById(id).value)||0;}
+function setInput(id,val){const el=document.getElementById(id);if(el)el.value=val;}
+function set(id,val){const el=document.getElementById(id);if(!el)return;el.tagName==='INPUT'?el.value=val:el.textContent=val;}
+function fmt(n,dec=1){if(!isFinite(n)||n<0)return '0';return n.toFixed(dec);}
+function pad(n){return n.toString().padStart(2,'0');}
+
+function cylVol(dMm,lenM){if(!dMm||!lenM)return 0;const r=dMm/2/1000;return Math.PI*r*r*lenM*1000;}
+function annVol(do_,di,lenM){if(!do_||!di||!lenM)return 0;const ro=do_/2/1000,ri=di/2/1000;return Math.PI*(ro*ro-ri*ri)*lenM*1000;}
+
+
+function setDir(dir) {
+  document.getElementById('direction').value = dir;
+  ['tube','annulus','total','custom'].forEach(d => {
+    const b = document.getElementById('dir_btn_' + d);
+    if (b) b.classList.toggle('active', d === dir);
+  });
+  document.getElementById('custom_row').style.display = dir === 'custom' ? '' : 'none';
+  calc();
+}
+
+function syncRate() { calc(); }
+
+function setMonMode(mode) {
+  document.getElementById('mon_mode').value = mode;
+  ['tube','ann','total'].forEach(m => {
+    const b = document.getElementById('mmode_' + m);
+    if (b) b.classList.toggle('active', m === mode);
+  });
+  updateMonitorDisplay();
+}
+
+function setPipeType(n,type){
+  document.getElementById('a'+n+'_type').value=type;
+  ['drill','casing'].forEach(t=>{const b=document.getElementById('a'+n+'_btn_'+t);if(b)b.classList.toggle('active',t===type);});
+  calc();
+}
+
+function calc(){
+  // Tube
+  const t1=cylVol(Math.max(0,v('t1_od')-2*v('t1_wt')),v('t1_len'));
+  const t2=cylVol(Math.max(0,v('t2_od')-2*v('t2_wt')),v('t2_len'));
+  const t3=cylVol(Math.max(0,v('t3_od')-2*v('t3_wt')),v('t3_len'));
+  set('t1_vol',fmt(t1,0));set('t2_vol',fmt(t2,0));set('t3_vol',fmt(t3,0));
+  const tube_l=t1+t2+t3;
+
+  // Casing
+  const cas_id=Math.max(0,v('cas_od')-2*v('cas_wt'));
+  const cas_bot=v('cas_bot');
+  const cas_raw=cylVol(cas_id,cas_bot);
+  setInput('cas_ann_vol',fmt(cas_raw,1));
+  set('ann_cas_res',fmt(cas_raw,0));
+  const wdEl=document.getElementById('window_depth_lbl');if(wdEl)wdEl.textContent=fmt(cas_bot,0);
+
+  // Open hole
+  const hole_d=v('hole_d'),hole_kav=Math.max(1,v('hole_kav')||1.15);
+  const hole_top=cas_bot,hole_bot=v('hole_bot');
+  const hole_len=Math.max(0,hole_bot-hole_top);
+  setInput('hole_top_lbl',fmt(hole_top,0));
+  const hole_raw=cylVol(hole_d,hole_len)*hole_kav;
+  set('ann_hole_res',fmt(hole_raw,0));
+  const kn=document.getElementById('kav_note');if(kn)kn.textContent='с учётом К.кав = '+hole_kav.toFixed(2);
+
+  // Annulus sections
+  // Кольцевой объём в обсадной: (вн.Ø ОК)² - (нар.Ø трубы)²
+  // Кольцевой объём в ОС: (Ø долота × √К.кав)² - (нар.Ø трубы)²
+  const hole_eff_d = hole_d * Math.sqrt(hole_kav); // эффективный Ø ствола с кавернозностью
+  function annSec(from, to, pod) {
+    if (!pod || to <= from) return 0;
+    const inC = Math.max(0, Math.min(to, cas_bot) - Math.max(from, 0));
+    const inH = Math.max(0, Math.min(to, hole_bot) - Math.max(from, hole_top));
+    return annVol(cas_id, pod, inC) + annVol(hole_eff_d, pod, inH);
+  }
+  const a1 = v('a1_pipe_od') > 0 ? annSec(v('a1_from'), v('a1_len'), v('a1_pipe_od')) : 0;
+  const a2 = v('a2_pipe_od') > 0 ? annSec(v('a2_from'), v('a2_len'), v('a2_pipe_od')) : 0;
+  set('a1_vol', fmt(a1,0)); set('a2_vol', fmt(a2,0));
+
+  // Если секции не заданы — считаем затруб как кольцо (без трубы внутри)
+  // cas_ann = π/4 × (вн.Ø_ОК²) × глубина_окна  (объём внутри ОК, т.к. трубы нет)
+  // hole_ann = π/4 × (Ø_eff²) × длина_ОС × kav  — уже в hole_raw
+  // При наличии секций — используем точные кольца
+  const ann_l = (a1 + a2) > 0 ? a1 + a2 : cas_raw + hole_raw;
+
+  // Plan
+  const dir=document.getElementById('direction').value;
+  document.getElementById('custom_row').style.display=dir==='custom'?'':'none';
+  let base=dir==='tube'?tube_l:dir==='annulus'?ann_l:dir==='total'?tube_l+ann_l:v('custom_vol');
+  const plan_vol=base;
+  const pr=v('pump_rate_ls'),er=pr; // л/с, без КПД
+  const plan_time_sec=er>0?plan_vol/er:0;
+  const plan_time_min=plan_time_sec/60;
+  const plan_time_h = plan_time_min / 60;
+
+  // Display
+  set('tube_total_l',fmt(tube_l,0));set('tube_total_m3',fmt(tube_l/1000,2));
+  set('ann_total_l',fmt(ann_l,0));set('ann_total_m3',fmt(ann_l/1000,2));
+  set('plan_vol',fmt(plan_vol,0));set('plan_m3',fmt(plan_vol/1000,2));set('plan_time',fmt(plan_time_min,1));set('plan_time_h',fmt(plan_time_h,2));
+  set('sum_tube',fmt(tube_l/1000,3));set('sum_ann',fmt(ann_l/1000,3));set('sum_total',fmt((tube_l+ann_l)/1000,3));
+  set('sum_plan_vol',fmt(plan_vol,0));set('sum_plan_m3',fmt(plan_vol/1000,2));set('sum_time_min',fmt(plan_time_min,1));
+  set('sum_rate',fmt(pr,2));
+
+  const tot=tube_l+ann_l;
+  const tp=tot>0?(tube_l/tot*100):50,ap=tot>0?(ann_l/tot*100):50;
+  const _dt=document.getElementById('diag_tube'); if(_dt&&_dt.style) _dt.style.height=Math.max(5,tp)+'%';
+  const _da=document.getElementById('diag_ann'); if(_da&&_da.style) _da.style.height=Math.max(5,ap)+'%';
+  document.getElementById('diag_tube_v').textContent=fmt(tube_l,0)+' л';
+  document.getElementById('diag_ann_v').textContent=fmt(ann_l,0)+' л';
+
+  state={tube_l,ann_l,plan_vol_l:plan_vol,plan_time_min,pump_rate_ls:pr};
+
+  // Обновить быструю панель
+  const cas_id_qp = Math.max(0, v('cas_od')-2*v('cas_wt'));
+  const hole_len_qp = Math.max(0, v('hole_bot')-v('cas_bot'));
+  const hole_vol_qp = cylVol(v('hole_d'), hole_len_qp) * Math.max(1, v('hole_kav')||1);
+  const cas_vol_qp  = cylVol(cas_id_qp, v('cas_bot'));
+  // Затруб ОК (кольцо устье→окно)
+  const a_od_qp = v('a1_pipe_od') || v('a2_pipe_od') || 0;
+  const ann_ok_qp  = annVol(cas_id_qp, a_od_qp, v('cas_bot'));
+  // Затруб ствол (кольцо забой→окно)
+  // Затруб ОС = кольцо (hole_eff_d - a_od) × длина
+  const hole_eff_d_qp = v('hole_d') * Math.sqrt(Math.max(1, v('hole_kav')||1));
+  const ann_hole_qp = annVol(hole_eff_d_qp, a_od_qp, hole_len_qp);
+
+  set('qp_t1', fmt(t1/1000,2)); set('qp_t2', fmt(t2/1000,2));
+  set('qp_tube_total', fmt(tube_l/1000,2));
+  set('qp_cas_id',  fmt(cas_id_qp,1)); set('qp_cas_bot', fmt(v('cas_bot'),0));
+  set('qp_ann_ok',  fmt(ann_ok_qp/1000,2));
+  set('qp_ann_total', fmt(ann_l/1000,2));
+  set('qp_hole_d',  fmt(v('hole_d'),1)); set('qp_hole_kav', fmt(v('hole_kav')||1,2));
+  set('qp_ann_hole',fmt(Math.max(0,ann_hole_qp)/1000,2));
+  set('qp_hole_d2', fmt(v('hole_d'),1)); set('qp_hole_len', fmt(hole_len_qp,0));
+  set('qp_hole_vol',fmt(hole_vol_qp/1000,2));
+  set('qp_cas_od',  fmt(v('cas_od'),1)); set('qp_cas_id2', fmt(cas_id_qp,1));
+  set('qp_cas_vol', fmt(cas_vol_qp/1000,2));
+  set('qp_cyl_total', fmt((hole_vol_qp + cas_vol_qp)/1000,2));
+
+  // Время прокачки каждого объёма (мин) = объём(л) / расход(л/с) / 60
+  const qpRate = pr || 0.001; // л/с из calc
+  function tMin(litres){ return qpRate > 0 ? litres / qpRate / 60 : 0; }
+  function fmtT(litres){ const m = tMin(litres); return m > 0 ? fmt(m,1) : '—'; }
+
+  set('qp_t1_min',         fmtT(t1));
+  set('qp_t2_min',         fmtT(t2));
+  set('qp_tube_total_min', fmtT(tube_l));
+  set('qp_ann_ok_min',     fmtT(ann_ok_qp));
+  set('qp_ann_hole_min',   fmtT(Math.max(0,ann_hole_qp)));
+  set('qp_ann_total_min',  fmtT(ann_l));
+  set('qp_cas_vol_min',    fmtT(cas_vol_qp));
+  set('qp_hole_vol_min',   fmtT(hole_vol_qp));
+  set('qp_cyl_total_min',  fmtT(hole_vol_qp + cas_vol_qp));
+  set('pf_plan',fmt(plan_vol,0));set('pf_t_plan',fmt(plan_time_min,1));
+  updateMonitorDisplay();
+}
+
+// Stopwatch
+function swStart(){
+  if(sw.running)return;
+  if(!sw.paused){sw.elapsed=0;logEvent('Продавка ЗАПУЩЕНА. Плановый объём: '+fmt(state.plan_vol_l,0)+' л, время: '+fmt(state.plan_time_min,1)+' мин','ok');}
+  else logEvent('Продавка ВОЗОБНОВЛЕНА','warn');
+  sw.running=true;sw.paused=false;sw.startTs=Date.now()-sw.elapsed;
+  sw.interval=setInterval(swTick,500);
+  document.getElementById('btn_start').disabled=true;
+  document.getElementById('btn_pause').disabled=false;
+  setBadge('running','ИДЁТ');
+  document.getElementById('sw_status_label').textContent='Продавка идёт...';
+}
+function swPause(){
+  if(!sw.running)return;
+  sw.running=false;sw.paused=true;clearInterval(sw.interval);
+  logEvent('Продавка ПРИОСТАНОВЛЕНА на '+formatTime(sw.elapsed),'warn');
+  document.getElementById('btn_start').disabled=false;
+  document.getElementById('btn_start').textContent='▶ ПРОДОЛЖИТЬ';
+  document.getElementById('btn_pause').disabled=true;
+  setBadge('paused','ПАУЗА');
+  document.getElementById('sw_status_label').textContent='Пауза';
+}
+function swReset(){
+  sw.running=false;sw.paused=false;clearInterval(sw.interval);sw.elapsed=0;
+  document.getElementById('sw_display').textContent='00:00:00';
+  document.getElementById('sw_display').className='stopwatch-time';
+  document.getElementById('btn_start').disabled=false;
+  document.getElementById('btn_start').textContent='▶ СТАРТ';
+  document.getElementById('btn_pause').disabled=true;
+  factVol=0;
+  setBadge('ready','ГОТОВ');
+  document.getElementById('sw_status_label').textContent='Ожидание старта';
+  updateMonitorDisplay();
+  logEvent('Сброс. Система готова к новой продавке.','');
+}
+function swTick(){
+  sw.elapsed=Date.now()-sw.startTs;
+  const el=document.getElementById('sw_display');
+  el.textContent=formatTime(sw.elapsed);
+  const pm=state.plan_time_min*60000;
+  if(pm>0&&sw.elapsed>pm){el.className='stopwatch-time overtime';setBadge('overtime','ПЕРЕРАСХОД');document.getElementById('sw_status_label').textContent='Превышение планового времени!';}
+  else el.className='stopwatch-time running';
+  // Авто-расчёт факта: расход л/с × время в секундах
+  const rateLs = state.pump_rate_ls || v('pump_rate_ls') || 0;
+  factVol = rateLs * (sw.elapsed / 1000);
+  updateMonitorDisplay();
+}
+function formatTime(ms){const s=Math.floor(ms/1000),h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;return pad(h)+':'+pad(m)+':'+pad(sec);}
+function updateFact(){/* факт считается автоматически в swTick */}
+function updateMonitorDisplay(){
+  const pm  = state.plan_time_min;
+  const em  = sw.elapsed / 60000;
+  const tubeVol = state.tube_l || 0;
+  const annVol  = state.ann_l  || 0;
+  const totalVol= tubeVol + annVol;
+
+  // Режим продавки определяет как распределять факт
+  const mode = (document.getElementById('mon_mode')||{value:'total'}).value;
+  let factTube, factAnn, factTotal;
+  if (mode === 'tube') {
+    // Качаем только трубное
+    factTube  = factVol;
+    factAnn   = 0;
+    factTotal = factVol;
+  } else if (mode === 'ann') {
+    // Качаем только затрубное
+    factTube  = tubeVol; // трубное уже продавлено
+    factAnn   = factVol;
+    factTotal = tubeVol + factVol;
+  } else {
+    // Общий: сначала трубное, потом затрубное
+    factTube  = Math.min(factVol, tubeVol);
+    factAnn   = Math.max(0, factVol - tubeVol);
+    factTotal = factVol;
+  }
+
+  // Дельты
+  function deltaClass(d){ return d >= 0 ? 'pos' : 'neg'; }
+  function fmtD(d){ return (d>=0?'+':'')+fmt(Math.abs(d),0); }
+
+  // Трубное
+  set('mon_plan_tube', fmt(tubeVol,0));
+  set('mon_fact_tube', fmt(factTube,0));
+  const dTube = factTube - tubeVol;
+  set('mon_delta_tube', fmtD(dTube));
+  const dTubeBox = document.getElementById('mon_delta_tube_box');
+  if(dTubeBox) dTubeBox.className = 'mon-cell ' + deltaClass(dTube);
+  const barTube = document.getElementById('mon_bar_tube');
+  if(barTube) barTube.style.width = tubeVol>0 ? Math.min(factTube/tubeVol*100,100)+'%' : '0%';
+
+  // Затрубное
+  set('mon_plan_ann', fmt(annVol,0));
+  set('mon_fact_ann', fmt(factAnn,0));
+  const dAnn = factAnn - annVol;
+  set('mon_delta_ann', fmtD(dAnn));
+  const dAnnBox = document.getElementById('mon_delta_ann_box');
+  if(dAnnBox) dAnnBox.className = 'mon-cell ' + deltaClass(dAnn);
+  const barAnn = document.getElementById('mon_bar_ann');
+  if(barAnn) barAnn.style.width = annVol>0 ? Math.min(factAnn/annVol*100,100)+'%' : '0%';
+
+  // Общее
+  set('mon_plan_total', fmt(totalVol,0));
+  set('mon_fact_total', fmt(factTotal,0));
+  const dTotal = factTotal - totalVol;
+  set('mon_delta_total', fmtD(dTotal));
+  const dTotalBox = document.getElementById('mon_delta_total_box');
+  if(dTotalBox) dTotalBox.className = 'mon-cell ' + deltaClass(dTotal);
+  const barTotal = document.getElementById('mon_bar_total');
+  if(barTotal) barTotal.style.width = totalVol>0 ? Math.min(factTotal/totalVol*100,100)+'%' : '0%';
+
+  // Время
+  set('pf_t_plan', fmt(pm,1));
+  set('pf_t_fact', fmt(em,1));
+  const dt = em - pm;
+  set('pf_t_diff', (dt>=0?'+':'')+fmt(Math.abs(dt),1));
+  const tDiffBox = document.getElementById('pf_t_diff_box');
+  if(tDiffBox) tDiffBox.className = 'pf-box '+(dt<=0?'diff-pos':'diff-neg');
+
+  // Темп факт (л/с)
+  const ar = em > 0 ? factVol / em / 60 : 0;
+  set('pf_rate_actual', em>0.1 ? fmt(ar,2) : '—');
+
+  // Совместимость
+  set('pf_plan', fmt(totalVol,0));
+  set('pf_fact', fmt(factTotal,0));
+}
+function logMark(){
+  const t=sw.running||sw.paused?formatTime(sw.elapsed):'--:--:--';
+  const pct=state.plan_vol_l>0?fmt(factVol/state.plan_vol_l*100,1):'—';
+  logEvent('Отметка: '+fmt(factVol,0)+' л ('+pct+'% плана) на '+t,factVol>=state.plan_vol_l?'ok':'warn');
+  updateMonitorDisplay();
+}
+function logEvent(msg,type){
+  const now=new Date(),ts=pad(now.getHours())+':'+pad(now.getMinutes())+':'+pad(now.getSeconds());
+  const log=document.getElementById('event_log'),entry=document.createElement('div');
+  entry.className='log-entry'+(type?' '+type:'');
+  entry.innerHTML='<span class="log-time">'+ts+'</span><span class="log-msg">'+msg+'</span>';
+  log.prepend(entry);while(log.children.length>50)log.removeChild(log.lastChild);
+}
+function setBadge(type,text){const b=document.getElementById('sw_badge');b.className='status-badge badge-'+type;b.textContent=text;}
+
+
+
+// ── СОХРАНЕНИЕ ДАННЫХ ────────────────────────────────────────
+const SAVE_FIELDS = [
+  't1_od','t1_wt','t1_len',
+  't2_od','t2_wt','t2_len',
+  'cas_od','cas_wt','cas_bot',
+  'hole_d','hole_kav','hole_bot',
+  'a1_pipe_od','a1_from','a1_len',
+  'a2_pipe_od','a2_from','a2_len',
+  'pump_rate_ls',
+  'custom_vol',
+  'slug_vol','slug_pumped_before','slug_pumped_now',
+  'direction','a1_type','a2_type'
+];
+
+function saveData() {
+  try {
+    const data = {};
+    SAVE_FIELDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) data[id] = el.value;
+    });
+    localStorage.setItem('well_calc_v1', JSON.stringify(data));
+  } catch(e) {}
+}
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem('well_calc_v1');
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    SAVE_FIELDS.forEach(id => {
+      if (data[id] === undefined) return;
+      const el = document.getElementById(id);
+      if (el) el.value = data[id];
+    });
+    // Восстановить кнопки направления
+    const dir = data['direction'] || 'tube';
+    ['tube','annulus','total','custom'].forEach(d => {
+      const b = document.getElementById('dir_btn_' + d);
+      if (b) b.classList.toggle('active', d === dir);
+    });
+    const cr = document.getElementById('custom_row');
+    if (cr) cr.style.display = dir === 'custom' ? '' : 'none';
+    // Восстановить кнопки типа трубы в затрубе
+    ['1','2'].forEach(n => {
+      const type = data['a' + n + '_type'] || 'drill';
+      ['drill','casing'].forEach(t => {
+        const b = document.getElementById('a' + n + '_btn_' + t);
+        if (b) b.classList.toggle('active', t === type);
+      });
+    });
+  } catch(e) {}
+}
+
+// Автосохранение при каждом изменении инпута
+document.addEventListener('input', function() {
+  saveData();
+});
+
+loadData();
+calc();
+
+// ══════════════════════════════════════════════
+// БЛОК ПАЧКИ
+// ══════════════════════════════════════════════
+
+function buildCircPath() {
+  // Использует те же геометрические данные что calc() — результаты уже в state
+  // Трубное: строим посекционно для depth→volume mapping
+  // Затрубное: масштабируем к state.ann_l (эталонный объём из calc)
+
+  const path = [];
+  let cum = 0;
+
+  // ── 1. ТРУБНОЕ вниз ──────────────────────────────────────────
+  const tSecs = [
+    {od:v('t1_od'), wt:v('t1_wt'), len:v('t1_len')},
+    {od:v('t2_od'), wt:v('t2_wt'), len:v('t2_len')},
+  ];
+  let dep = 0;
+  for (const s of tSecs) {
+    const id = Math.max(0, s.od - 2*s.wt);
+    if (!id || !s.len) continue;
+    const vpm = Math.PI * (id/2/1000) * (id/2/1000) * 1000;
+    const vol = vpm * s.len;
+    path.push({volStart:cum, volEnd:cum+vol,
+               depthStart:dep, depthEnd:dep+s.len,
+               dir:'down', zone:'tube', vpm});
+    cum += vol;
+    dep += s.len;
+  }
+  // Эталонный объём трубного из calc() — масштабируем если нужно
+  const tubeCalc = state.tube_l || cum;
+  if (Math.abs(tubeCalc - cum) > 1 && cum > 0) {
+    // Масштабируем депт пропорционально
+    const scale = tubeCalc / cum;
+    path.forEach(s => {
+      const span = s.volEnd - s.volStart;
+      s.volEnd   = s.volStart + span * scale;
+      s.depthEnd = s.depthStart + (s.depthEnd - s.depthStart) * scale;
+    });
+    cum = tubeCalc;
+  }
+
+  // ── 2. ЗАТРУБНОЕ вверх — из state.ann_l ──────────────────────
+  const ann_l = state.ann_l || 0;
+  if (ann_l <= 0) {
+    path._totalVol = cum; path._tubeVol = cum; path._annVol = 0;
+    return path;
+  }
+
+  const cas_bot  = v('cas_bot');
+  const hole_bot = v('hole_bot');
+  const holeLen  = Math.max(0, hole_bot - cas_bot);
+
+  // Пропорция hole_ann / cas_ann по геометрии (для разбивки ann_l)
+  const cas_id  = Math.max(0, v('cas_od') - 2*v('cas_wt'));
+  const hole_d  = v('hole_d');
+  const holeKav = Math.max(1, v('hole_kav') || 1);
+  const pipeOd  = v('a1_pipe_od') || v('a2_pipe_od') || 0;
+
+  const ro_h = (hole_d * Math.sqrt(holeKav)) / 2 / 1000;
+  const ri_h = pipeOd / 2 / 1000;
+  const vpm_h = Math.max(0, Math.PI * (ro_h*ro_h - ri_h*ri_h) * 1000);
+  const raw_hole = vpm_h * holeLen;
+
+  const ro_c = cas_id / 2 / 1000;
+  const ri_c = pipeOd / 2 / 1000;
+  const vpm_c = Math.max(0, Math.PI * (ro_c*ro_c - ri_c*ri_c) * 1000);
+  const raw_cas = vpm_c * cas_bot;
+
+  const raw_tot = raw_hole + raw_cas;
+  // Масштабируем к ann_l
+  const holeAnnVol = raw_tot > 0 ? ann_l * (raw_hole / raw_tot) : ann_l * 0.5;
+  const casAnnVol  = ann_l - holeAnnVol;
+
+  // Открытый ствол: от hole_bot → cas_bot (вверх, depth убывает)
+  if (holeAnnVol > 0 && holeLen > 0) {
+    path.push({volStart:cum, volEnd:cum+holeAnnVol,
+               depthStart:hole_bot, depthEnd:cas_bot,
+               dir:'up', zone:'hole_ann',
+               vpm: holeAnnVol / holeLen});
+    cum += holeAnnVol;
+  }
+
+  // Затруб ОК: от cas_bot → 0 (вверх)
+  if (casAnnVol > 0 && cas_bot > 0) {
+    path.push({volStart:cum, volEnd:cum+casAnnVol,
+               depthStart:cas_bot, depthEnd:0,
+               dir:'up', zone:'cas_ann',
+               vpm: casAnnVol / cas_bot});
+    cum += casAnnVol;
+  }
+
+  path._totalVol = cum;
+  path._tubeVol  = state.tube_l || 0;
+  path._annVol   = ann_l;
+  return path;
+}
+
+
+function volToDepth(vol, path) {
+  if (vol <= 0) return {depth:0, zone:'surface', dir:'down'};
+  for (const seg of path) {
+    if (vol >= seg.volStart && vol <= seg.volEnd) {
+      const span = seg.volEnd - seg.volStart;
+      const frac = span>0 ? (vol-seg.volStart)/span : 0;
+      return {depth: seg.depthStart + frac*(seg.depthEnd-seg.depthStart), zone:seg.zone, dir:seg.dir};
+    }
+  }
+  const last = path[path.length-1];
+  return last ? {depth:last.depthEnd, zone:'beyond', dir:last.dir} : {depth:-1, zone:'beyond', dir:'up'};
+}
+
+function zoneLabel(pos) {
+  if (!pos) return '—';
+  const d = pos.depth>=0 ? pos.depth.toFixed(0)+'м' : '?';
+  if (pos.zone==='surface') return 'поверхность';
+  if (pos.zone==='tube')     return '↓ трубное · '+d;
+  if (pos.zone==='hole_ann') return '↑ откр.ствол · '+d;
+  if (pos.zone==='cas_ann')  return '↑ затруб ОК · '+d;
+  if (pos.zone==='beyond')   return 'вышла на поверхность';
+  return d;
+}
+
+function calcSlug() {
+  const slugVol  = v('slug_vol');
+  const pBefore  = v('slug_pumped_before');
+  const pNow     = v('slug_pumped_now');
+  if (slugVol<=0) return;
+
+  const path = buildCircPath();
+
+  if (pNow <= pBefore) {
+    ['slug_head_depth','slug_tail_depth','slug_length_m'].forEach(id=>set(id,'—'));
+    ['slug_head_zone','slug_tail_zone'].forEach(id=>set(id,'—'));
+    set('slug_status','НЕ ЗАКАЧАНА');
+    const dbg=document.getElementById('slug_debug');
+    if(dbg) dbg.textContent='Трубное: '+path._tubeVol.toFixed(0)+' л  |  Затрубное: '+path._annVol.toFixed(0)+' л  |  Введите объём закачанного';
+    drawSlugDiagram(null, null, path);
+    return;
+  }
+
+  // headAdv = сколько жидкости прошло ПЕРЕД головой пачки
+  const headAdv = pNow - pBefore;
+  // tailAdv = сколько жидкости прошло ПЕРЕД хвостом пачки
+  const tailAdv = Math.max(0, headAdv - slugVol);
+
+  const headPos = volToDepth(headAdv, path);
+  const tailPos = volToDepth(tailAdv, path);
+
+  set('slug_head_depth', headPos.depth>=0 ? headPos.depth.toFixed(1) : '—');
+  set('slug_tail_depth', tailPos.depth>=0 ? tailPos.depth.toFixed(1) : '0.0');
+  set('slug_head_zone',  zoneLabel(headPos));
+  set('slug_tail_zone',  zoneLabel(tailPos));
+
+  const lenM = (headPos.depth>=0&&tailPos.depth>=0)
+    ? Math.abs(headPos.depth-tailPos.depth).toFixed(1) : '—';
+  set('slug_length_m', lenM);
+
+  let status;
+  if (headAdv < slugVol)             status = 'ЗАКАЧИВАЕТСЯ ↓';
+  else if (headPos.zone==='tube')    status = 'В ТРУБНОМ ↓';
+  else if (headPos.zone==='hole_ann')status = 'В ОТКР.СТВОЛЕ ↑';
+  else if (headPos.zone==='cas_ann') status = 'В ЗАТРУБЕ ОК ↑';
+  else if (headPos.zone==='beyond')  status = 'ВЫШЛА';
+  else                               status = 'НА ЗАБОЕ';
+  set('slug_status', status);
+
+  // Debug
+  const toExitTube = Math.max(0, path._tubeVol - headAdv);
+  const toFullOut  = Math.max(0, path._tubeVol + slugVol - headAdv);
+  const dbg = document.getElementById('slug_debug');
+  if (dbg) dbg.textContent =
+    'Трубное: '+path._tubeVol.toFixed(0)+' л  |  Затрубное: '+path._annVol.toFixed(0)+' л  |  '
+    +(toExitTube>0 ? 'До выхода головы в затруб: '+toExitTube.toFixed(0)+' л'
+      : toFullOut>0 ? 'До выхода хвоста в затруб: '+toFullOut.toFixed(0)+' л'
+      : '✓ Пачка полностью в затрубном');
+
+  drawSlugDiagram(tailPos, headPos, path);
+  saveData();
+}
+
+function drawSlugDiagram(){ /* визуализация отключена */ }
+
+
+
+// ── БЫСТРАЯ ПАНЕЛЬ: расчёт по клику ──────────────────────────
+function fmt2(n){ return isFinite(n)&&n>=0 ? n.toFixed(2) : '—'; }
+function fmtM(n){ return isFinite(n)&&n>=0 ? n.toFixed(1) : '—'; }
+function cylM3(dMm, lenM){ if(!dMm||!lenM) return 0; const r=dMm/2/1000; return Math.PI*r*r*lenM; }
+function annM3(doMm, diMm, lenM){ if(!doMm||!diMm||!lenM) return 0; const ro=doMm/2/1000,ri=diMm/2/1000; return Math.PI*(ro*ro-ri*ri)*lenM; }
+
+function row(label, formula, result, unit) {
+  return '<div class="qp-calc-row">'
+    + '<div class="qp-calc-label">' + label + '</div>'
+    + '<div class="qp-calc-formula">' + formula + '</div>'
+    + '<div class="qp-calc-result">' + result + ' <small style="opacity:.5">' + unit + '</small></div>'
+    + '</div>';
+}
+function secHead(txt){ return '<div class="qp-section-head">' + txt + '</div>'; }
+function total(cls, label, val, unit){
+  return '<div class="qp-calc-total ' + cls + '">'
+    + '<div class="qp-calc-total-label">' + label + '</div>'
+    + '<div class="qp-calc-total-val ' + cls + '">' + val + ' <small style="opacity:.5;font-size:12px">' + unit + '</small></div>'
+    + '</div>';
+}
+
+function openQpModal(key) {
+  const overlay = document.getElementById('qp_modal_overlay');
+  const title   = document.getElementById('qp_modal_title');
+  const body    = document.getElementById('qp_modal_body');
+
+  const t1od=v('t1_od'),t1wt=v('t1_wt'),t1len=v('t1_len');
+  const t2od=v('t2_od'),t2wt=v('t2_wt'),t2len=v('t2_len');
+  const t3od=v('t3_od'),t3wt=v('t3_wt'),t3len=v('t3_len');
+  const t1id=Math.max(0,t1od-2*t1wt), t2id=Math.max(0,t2od-2*t2wt), t3id=Math.max(0,t3od-2*t3wt);
+  const casOd=v('cas_od'),casWt=v('cas_wt'),casBot=v('cas_bot');
+  const casId=Math.max(0,casOd-2*casWt);
+  const holeD=v('hole_d'),holeKav=Math.max(1,v('hole_kav')||1),holeBot=v('hole_bot');
+  const holeLen=Math.max(0,holeBot-casBot);
+  const a1od=v('a1_pipe_od'),a2od=v('a2_pipe_od');
+  const pipeOd=a1od||a2od||0;
+
+  let html='', cls='c-tube', ttl='';
+
+  if(key==='tube1'){
+    ttl='Секция 1 · Трубное'; cls='c-tube';
+    const vol=cylM3(t1id,t1len);
+    html = secHead('Исходные данные')
+      + row('Нар. Ø', '',  fmtM(t1od)+' мм', '')
+      + row('Стенка', '',  fmtM(t1wt)+' мм', '')
+      + row('Вн. Ø = Нар.Ø − 2×Стенка', t1od+'−2×'+t1wt, fmtM(t1id)+' мм', '')
+      + row('Глубина', '', fmtM(t1len)+' м', '')
+      + secHead('Расчёт')
+      + row('V = π/4 × Ø² × L', 'π/4 × '+fmtM(t1id)+'² × '+fmtM(t1len), fmtM(vol*1000)+' л', '')
+      + total(cls,'Объём секции 1', fmt2(vol), 'м³');
+  } else if(key==='tube2'){
+    ttl='Секция 2 · Трубное'; cls='c-tube';
+    const v2=cylM3(t2id,t2len);
+    html = secHead('Исходные данные')
+      + row('Нар. Ø', '', fmtM(t2od)+' мм', '')
+      + row('Стенка', '', fmtM(t2wt)+' мм', '')
+      + row('Вн. Ø', t2od+'−2×'+t2wt, fmtM(t2id)+' мм', '')
+      + row('Длина', '', fmtM(t2len)+' м', '')
+      + secHead('Расчёт')
+      + row('V = π/4 × Ø² × L', '', fmt2(v2)+' м³', '')
+      + total(cls,'Объём секции 2', fmt2(v2), 'м³');
+  } else if(key==='tube_total'){
+    ttl='Трубное · Итого'; cls='c-tube';
+    const v1=cylM3(t1id,t1len),v2=cylM3(t2id,t2len);
+    html = row('Секция 1', '', fmt2(v1)+' м³', '')
+      + row('Секция 2', '', fmt2(v2)+' м³', '')
+      + total(cls,'Итого', fmt2(v1+v2), 'м³');
+  } else if(key==='ann_ok'){
+    ttl='Затруб ОК · устье → окно'; cls='c-ann';
+    const vol=annM3(casId,pipeOd,casBot);
+    html = secHead('Исходные данные')
+      + row('Вн. Ø ОК', casOd+'−2×'+casWt, fmtM(casId)+' мм', '')
+      + row('Нар. Ø колонны в затрубе', '', fmtM(pipeOd)+' мм', '')
+      + row('Глубина окна', '', fmtM(casBot)+' м', '')
+      + secHead('Расчёт')
+      + row('V = π/4 × (Ø_ок² − Ø_тр²) × L', '', fmt2(vol)+' м³', '')
+      + total(cls,'Объём затруба ОК', fmt2(vol), 'м³');
+  } else if(key==='ann_hole'){
+    ttl='Затруб ОС · забой → окно'; cls='c-ann';
+    const holeEff=holeD*Math.sqrt(holeKav);
+    const vol=annM3(holeEff,pipeOd,holeLen);
+    html = secHead('Исходные данные')
+      + row('Ø долота', '', fmtM(holeD)+' мм', '')
+      + row('К. кавернозности', '', fmtM(holeKav), '')
+      + row('Эфф. Ø = Ø × √К', holeD+'×√'+fmtM(holeKav), fmtM(holeEff)+' мм', '')
+      + row('Нар. Ø колонны', '', fmtM(pipeOd)+' мм', '')
+      + row('Длина ОС', holeBot+'−'+casBot, fmtM(holeLen)+' м', '')
+      + secHead('Расчёт')
+      + row('V = π/4 × (Ø_эфф² − Ø_тр²) × L', '', fmt2(vol)+' м³', '')
+      + total(cls,'Объём затруба ОС', fmt2(vol), 'м³');
+  } else if(key==='ann_total'){
+    ttl='Затруб · Итого'; cls='c-ann';
+    const vOk=annM3(casId,pipeOd,casBot);
+    const vHole=annM3(holeD*Math.sqrt(holeKav),pipeOd,holeLen);
+    html = row('Затруб ОК', '', fmt2(vOk)+' м³', '')
+      + row('Затруб ОС', '', fmt2(vHole)+' м³', '')
+      + total(cls,'Итого', fmt2(vOk+vHole), 'м³');
+  } else if(key==='cyl_hole'){
+    ttl='Открытый ствол · полный цилиндр'; cls='c-cyl';
+    const vol=cylM3(holeD,holeLen)*holeKav;
+    html = row('Ø долота', '', fmtM(holeD)+' мм', '')
+      + row('К. кавернозности', '', fmtM(holeKav), '')
+      + row('Длина ОС', holeBot+'−'+casBot, fmtM(holeLen)+' м', '')
+      + secHead('Расчёт')
+      + row('V = π/4 × Ø² × L × К', '', fmt2(vol)+' м³', '')
+      + total(cls,'Объём ОС', fmt2(vol), 'м³');
+  } else if(key==='cyl_ok'){
+    ttl='Обсадная колонна · цилиндр'; cls='c-cyl';
+    const vol=cylM3(casId,casBot);
+    html = row('Нар. Ø ОК', '', fmtM(casOd)+' мм', '')
+      + row('Вн. Ø ОК', casOd+'−2×'+casWt, fmtM(casId)+' мм', '')
+      + row('Глубина', '', fmtM(casBot)+' м', '')
+      + secHead('Расчёт')
+      + row('V = π/4 × Ø_вн² × L', '', fmt2(vol)+' м³', '')
+      + total(cls,'Объём ОК', fmt2(vol), 'м³');
+  } else if(key==='cyl_total'){
+    ttl='Без колонны · Итого'; cls='c-cyl';
+    const vHole=cylM3(holeD,holeLen)*holeKav, vOk=cylM3(casId,casBot);
+    html = row('ОС (цилиндр)', '', fmt2(vHole)+' м³', '')
+      + row('ОК (цилиндр)', '', fmt2(vOk)+' м³', '')
+      + total(cls,'Итого', fmt2(vHole+vOk), 'м³');
+  }
+
+  title.textContent = ttl;
+  title.className = 'qp-modal-title ' + cls;
+  body.innerHTML = html;
+  overlay.classList.add('open');
+}
+
+function closeQpModal(e) {
+  if (!e || e.target === document.getElementById('qp_modal_overlay') || e.type !== 'click' || !e.currentTarget) {
+    document.getElementById('qp_modal_overlay').classList.remove('open');
+  }
+  if (e && e.target.classList && e.target.classList.contains('qp-modal-close')) {
+    document.getElementById('qp_modal_overlay').classList.remove('open');
+  }
+}
+
+
+// ── Прокрутка ─────────────────────────────────────────────────
+(function() {
+  const header    = document.querySelector('.header');
+  const qpGrid    = document.querySelector('.qp-grid');
+  const toggleBtn = document.getElementById('qp_toggle_btn');
+  let pending = false;
+
+  window.addEventListener('scroll', function() {
+    if (pending) return;
+    pending = true;
+    requestAnimationFrame(function() {
+      const y    = window.scrollY;
+      const past = y > 80;
+
+      // Заголовок
+      if (header) header.classList.toggle('scrolled', y > 10);
+
+      // Кнопка — показываем когда далеко прокрутили
+      if (toggleBtn) toggleBtn.classList.toggle('visible', past);
+
+      // Панель — прячем автоматически только если кнопка не активна
+      if (qpGrid) {
+        const pinned = toggleBtn && toggleBtn.classList.contains('active');
+        if (!pinned) qpGrid.classList.toggle('qp-hidden', past);
+      }
+
+      // Вернулись наверх — сбрасываем попап
+      if (!past) {
+        if (toggleBtn) toggleBtn.classList.remove('active');
+        if (qpGrid) {
+          qpGrid.classList.remove('qp-hidden');
+          qpGrid.classList.remove('qp-popup');
+        }
+      }
+
+      pending = false;
+    });
+  }, { passive: true });
+})();
+
+</script>
+
+<!-- БЛОК ПАЧКИ -->
+<div class="card blue full" id="slug-card" style="max-width:1200px;margin:16px auto 0;background:linear-gradient(160deg,#0a1a2e,#061018);border-color:rgba(0,212,255,.3);">
+  <div class="card-title" style="color:var(--accent);letter-spacing:3px;"><div class="dot"></div>Расчёт пачки</div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;align-items:end;">
+    <div class="field"><label>Объём пачки (л)</label><input type="number" id="slug_vol" value="2000" step="50" oninput="calcSlug()"></div>
+    <div class="field"><label>Объём продавки (л)</label><input type="number" id="slug_pumped_now" value="0" step="50" oninput="calcSlug()"></div>
+  </div>
+  <input type="hidden" id="slug_pumped_before" value="0">
+
+  <div id="slug_debug" class="slug-debug"></div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;">
+
+    <div class="slug-res-card slug-rc-head">
+      <div class="slug-rc-label">Голова пачки</div>
+      <div class="slug-rc-val"><span id="slug_head_depth">—</span><span class="slug-rc-unit"> м</span></div>
+      <div class="slug-rc-zone" id="slug_head_zone">—</div>
+    </div>
+
+    <div class="slug-res-card slug-rc-tail">
+      <div class="slug-rc-label">Хвост пачки</div>
+      <div class="slug-rc-val"><span id="slug_tail_depth">—</span><span class="slug-rc-unit"> м</span></div>
+      <div class="slug-rc-zone" id="slug_tail_zone">—</div>
+    </div>
+
+    <div class="slug-res-card slug-rc-len">
+      <div class="slug-rc-label">Длина в стволе</div>
+      <div class="slug-rc-val"><span id="slug_length_m">—</span><span class="slug-rc-unit"> м</span></div>
+    </div>
+
+    <div class="slug-res-card slug-rc-status">
+      <div class="slug-rc-label">Статус</div>
+      <div class="slug-rc-status-val" id="slug_status">—</div>
+    </div>
+
+  </div>
+
+  <input type="hidden" id="slug_name" value="Пачка">
+  <div style="display:none;">
+    <span id="sz_tube_m"></span><span id="sz_hole_m"></span><span id="sz_window_m"></span>
+    <span id="sz_tube_label"></span><span id="sz_hole_label"></span>
+    <span id="slug_label_svg"></span><span id="slug_depth_labels"></span>
+    <span id="cas_wall_l"></span><span id="cas_wall_r"></span><span id="cas_ann_bg"></span>
+    <span id="pipe_wall_l"></span><span id="pipe_wall_r"></span><span id="pipe_inner"></span>
+    <span id="pipe_wall_l2"></span><span id="pipe_wall_r2"></span><span id="pipe_inner2"></span>
+    <span id="hole_wall_l"></span><span id="hole_wall_r"></span><span id="hole_ann_bg"></span>
+    <span id="window_line"></span>
+    <span id="slug_in_pipe"></span><span id="slug_in_cas_ann_l"></span><span id="slug_in_cas_ann_r"></span>
+    <span id="slug_in_hole_ann_l"></span><span id="slug_in_hole_ann_r"></span>
+  </div>
+</div>
+
+<!-- МОДАЛЬНОЕ ОКНО РАСЧЁТА -->
+<div class="qp-modal-overlay" id="qp_modal_overlay" onclick="closeQpModal(event)">
+  <div class="qp-modal" id="qp_modal">
+    <button class="qp-modal-close" onclick="closeQpModal()">✕</button>
+    <div class="qp-modal-title" id="qp_modal_title">—</div>
+    <div id="qp_modal_body"></div>
+  </div>
+</div>
+
+
+</body>
+</html>
